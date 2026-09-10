@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="58%">
+      <stop offset="0%" stop-color="#3a2106"/>
+      <stop offset="68%" stop-color="#120b05"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1a8"/>
+      <stop offset="18%" stop-color="#ffd34d"/>
+      <stop offset="48%" stop-color="#b86b08"/>
+      <stop offset="72%" stop-color="#ffe27a"/>
+      <stop offset="100%" stop-color="#8a4b05"/>
+    </linearGradient>
+    <linearGradient id="gold2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff6c4"/>
+      <stop offset="35%" stop-color="#f6bd35"/>
+      <stop offset="70%" stop-color="#a85e08"/>
+      <stop offset="100%" stop-color="#ffd95a"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#000" flood-opacity=".75"/>
+    </filter>
+  </defs>
+
+  <circle cx="256" cy="256" r="246" fill="#050505" stroke="#8a4b05" stroke-width="8"/>
+  <circle cx="256" cy="256" r="232" fill="url(#bg)" stroke="url(#gold)" stroke-width="7"/>
+
+  <!-- luminous rings -->
+  <circle cx="256" cy="256" r="202" fill="none" stroke="#f4b72b" stroke-width="3" opacity=".75" filter="url(#glow)"/>
+  <circle cx="256" cy="256" r="184" fill="none" stroke="#ffd75a" stroke-width="2" stroke-dasharray="3 12" opacity=".9"/>
+  <circle cx="256" cy="256" r="166" fill="none" stroke="#9a5c09" stroke-width="8"/>
+
+  <!-- decorative rays -->
+  <g stroke="#ffd85d" stroke-width="3" opacity=".65">
+    <path d="M256 62v30M256 420v30M62 256h30M420 256h30"/>
+    <path d="M119 119l22 22M371 371l22 22M393 119l-22 22M141 371l-22 22"/>
+  </g>
+
+  <!-- coin -->
+  <circle cx="256" cy="256" r="137" fill="url(#gold2)" stroke="#5e3305" stroke-width="10" filter="url(#shadow)"/>
+  <circle cx="256" cy="256" r="120" fill="url(#bg)" stroke="#ffd65b" stroke-width="5"/>
+  <circle cx="256" cy="256" r="108" fill="none" stroke="#a9660a" stroke-width="7"/>
+  <circle cx="256" cy="256" r="98" fill="none" stroke="#f4c34d" stroke-width="2" stroke-dasharray="2 7"/>
+
+  <!-- lotus/crown emblem -->
+  <g fill="url(#gold)" stroke="#6b3a05" stroke-width="3">
+    <path d="M256 133c-12 15-15 29 0 43 15-14 12-28 0-43z"/>
+    <path d="M232 142c-18 12-25 28-11 43 16-4 23-18 11-43z"/>
+    <path d="M280 142c18 12 25 28 11 43-16-4-23-18-11-43z"/>
+    <path d="M211 158c-17 7-29 19-24 35 18 4 31-9 24-35z"/>
+    <path d="M301 158c17 7 29 19 24 35-18 4-31-9-24-35z"/>
+  </g>
+
+  <!-- MAI letters -->
+  <text x="256" y="294" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="116" font-weight="900" letter-spacing="3"
+        fill="url(#gold2)" stroke="#6b3904" stroke-width="6" paint-order="stroke"
+        filter="url(#shadow)">MAI</text>
+
+  <path d="M174 326 Q256 350 338 326" fill="none" stroke="#ffd95c" stroke-width="4"/>
+  <path d="M194 344 Q256 358 318 344" fill="none" stroke="#9a5c09" stroke-width="3"/>
+
+  <!-- sparkles -->
+  <g fill="#fff0a2" filter="url(#glow)">
+    <circle cx="113" cy="191" r="4"/><circle cx="399" cy="201" r="4"/>
+    <circle cx="141" cy="356" r="3"/><circle cx="376" cy="342" r="3"/>
+    <path d="M102 274l5 14 14 5-14 5-5 14-5-14-14-5 14-5z"/>
+    <path d="M408 285l4 11 11 4-11 4-4 11-4-11-11-4 11-4z"/>
+  </g>
+</svg>
