@@ -29,7 +29,7 @@ const API_URL = (
   This image must exist inside:
   frontend/public/mai-main-logo.png
 */
-const LOGO = '/logo.svg';
+const LOGO = '/mai-main-logo.png';
 
 /* ----------------------------------
    TELEGRAM
@@ -239,9 +239,6 @@ function MainApp() {
   const [coinPulse, setCoinPulse] =
     useState(false);
 
-  const [referralCount, setReferralCount] =
-    useState(0);
-
   const initDataRef =
     useRef('');
 
@@ -393,43 +390,6 @@ function MainApp() {
       },
       [initTelegram]
     );
-
-  /* ------------------------------
-     REFERRAL SUMMARY
-  ------------------------------- */
-
-  useEffect(() => {
-    if (!user || !initDataRef.current) {
-      return;
-    }
-
-    let cancelled = false;
-
-    api('/api/referrals', {
-      initData: initDataRef.current
-    })
-      .then(data => {
-        if (!cancelled) {
-          setReferralCount(
-            Number(
-              data?.totalFriends ??
-              data?.referralCount ??
-              data?.friends?.length ??
-              0
-            )
-          );
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setReferralCount(0);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
 
   /* ------------------------------
      PERIODIC SYNC
@@ -845,7 +805,7 @@ function MainApp() {
           </span>
 
           <small>
-            👥 Referrals: {referralCount}
+            👥 Referrals: —
           </small>
 
         </div>
