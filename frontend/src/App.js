@@ -9,14 +9,14 @@ import React, {
 import {
   TonConnectUIProvider,
   TonConnectButton,
-  useTonAddress,
-  useTonConnectUI
+  useTonAddress
 } from '@tonconnect/ui-react';
 
 import HeroCoin from './HeroCoin';
 import Tasks from './Tasks';
 import Friends from './Friends2/friends';
 import LoadingScreen from './LoadingScreen';
+
 import './App.css';
 
 const API_URL = (
@@ -24,16 +24,11 @@ const API_URL = (
   'https://mai-network-v2-backend.onrender.com'
 ).replace(/\/$/, '');
 
-/*
-  IMPORTANT:
-  This image must exist inside:
-  frontend/public/mai-main-logo.png
-*/
 const LOGO = '/mai-main-logo.png';
 
-/* ----------------------------------
+/* =========================================================
    TELEGRAM
------------------------------------ */
+========================================================= */
 
 function tg() {
   return (
@@ -44,9 +39,9 @@ function tg() {
     : null;
 }
 
-/* ----------------------------------
+/* =========================================================
    API
------------------------------------ */
+========================================================= */
 
 async function api(
   path,
@@ -91,11 +86,14 @@ async function api(
   return data;
 }
 
-/* ----------------------------------
-   HELPERS
------------------------------------ */
+/* =========================================================
+   FORMATTERS
+========================================================= */
 
-function formatNumber(value, decimals = 4) {
+function formatNumber(
+  value,
+  decimals = 4
+) {
   const n = Number(value || 0);
 
   return n.toLocaleString(
@@ -110,7 +108,9 @@ function formatNumber(value, decimals = 4) {
 function formatTime(seconds) {
   const s = Math.max(
     0,
-    Math.floor(Number(seconds || 0))
+    Math.floor(
+      Number(seconds || 0)
+    )
   );
 
   const h = String(
@@ -118,7 +118,9 @@ function formatTime(seconds) {
   ).padStart(2, '0');
 
   const m = String(
-    Math.floor((s % 3600) / 60)
+    Math.floor(
+      (s % 3600) / 60
+    )
   ).padStart(2, '0');
 
   const sec = String(
@@ -128,9 +130,9 @@ function formatTime(seconds) {
   return `${h}:${m}:${sec}`;
 }
 
-/* ----------------------------------
-   NAV ICON
------------------------------------ */
+/* =========================================================
+   NAV ICONS
+========================================================= */
 
 function NavIcon({
   id,
@@ -138,7 +140,7 @@ function NavIcon({
 }) {
   const color = active
     ? '#ffd76a'
-    : '#8792a5';
+    : '#9aa5b7';
 
   const common = {
     width: 23,
@@ -204,9 +206,9 @@ function NavIcon({
   );
 }
 
-/* ----------------------------------
+/* =========================================================
    MAIN APP
------------------------------------ */
+========================================================= */
 
 function MainApp() {
   const [showLoading, setShowLoading] =
@@ -245,40 +247,38 @@ function MainApp() {
   const userAddress =
     useTonAddress();
 
-  const [tonConnectUI] =
-    useTonConnectUI();
-
-  /* ------------------------------
+  /* =======================================================
      TELEGRAM INIT
-  ------------------------------- */
+  ======================================================= */
 
-  const initTelegram = useCallback(() => {
-    const webApp = tg();
+  const initTelegram =
+    useCallback(() => {
+      const webApp = tg();
 
-    if (!webApp) {
-      throw new Error(
-        'Open MAI Network inside Telegram.'
-      );
-    }
+      if (!webApp) {
+        throw new Error(
+          'Open MAI Network inside Telegram.'
+        );
+      }
 
-    webApp.ready();
-    webApp.expand();
+      webApp.ready();
+      webApp.expand();
 
-    initDataRef.current =
-      webApp.initData || '';
+      initDataRef.current =
+        webApp.initData || '';
 
-    if (!initDataRef.current) {
-      throw new Error(
-        'Telegram authorization data is unavailable.'
-      );
-    }
+      if (!initDataRef.current) {
+        throw new Error(
+          'Telegram authorization data is unavailable.'
+        );
+      }
 
-    return initDataRef.current;
-  }, []);
+      return initDataRef.current;
+    }, []);
 
-  /* ------------------------------
+  /* =======================================================
      AUTH
-  ------------------------------- */
+  ======================================================= */
 
   useEffect(() => {
     let cancelled = false;
@@ -325,9 +325,9 @@ function MainApp() {
     };
   }, [initTelegram]);
 
-  /* ------------------------------
-     SERVER SYNC
-  ------------------------------- */
+  /* =======================================================
+     SERVER STATE SYNC
+  ======================================================= */
 
   const syncState =
     useCallback(
@@ -391,9 +391,9 @@ function MainApp() {
       [initTelegram]
     );
 
-  /* ------------------------------
-     PERIODIC SYNC
-  ------------------------------- */
+  /* =======================================================
+     AUTO SYNC
+  ======================================================= */
 
   useEffect(() => {
     if (!user) {
@@ -416,9 +416,9 @@ function MainApp() {
     syncState
   ]);
 
-  /* ------------------------------
-     CLAIM TIMER
-  ------------------------------- */
+  /* =======================================================
+     CLAIM COUNTDOWN
+  ======================================================= */
 
   useEffect(() => {
     if (claimRemaining <= 0) {
@@ -441,9 +441,9 @@ function MainApp() {
 
   }, [claimRemaining]);
 
-  /* ------------------------------
-     WALLET
-  ------------------------------- */
+  /* =======================================================
+     TON WALLET
+  ======================================================= */
 
   useEffect(() => {
     if (
@@ -471,9 +471,9 @@ function MainApp() {
 
   }, [userAddress]);
 
-  /* ------------------------------
-     BALANCE
-  ------------------------------- */
+  /* =======================================================
+     LIVE DISPLAY BALANCE
+  ======================================================= */
 
   const displayBalance =
     useMemo(() => {
@@ -501,7 +501,9 @@ function MainApp() {
         );
 
       return (
-        Number(user.balance || 0) +
+        Number(
+          user.balance || 0
+        ) +
         (
           Number(
             user.miningPerSecond || 0
@@ -510,6 +512,10 @@ function MainApp() {
         )
       );
     }, [user]);
+
+  /* =======================================================
+     MINING DATA
+  ======================================================= */
 
   const level =
     user?.level || 0;
@@ -526,9 +532,9 @@ function MainApp() {
       0.00005787
     );
 
-  /* ------------------------------
-     CLAIM
-  ------------------------------- */
+  /* =======================================================
+     DAILY CLAIM
+  ======================================================= */
 
   const handleClaim =
     async () => {
@@ -575,9 +581,9 @@ function MainApp() {
       }
     };
 
-  /* ------------------------------
-     LEVELS
-  ------------------------------- */
+  /* =======================================================
+     LEVEL SYSTEM
+  ======================================================= */
 
   const levels =
     useMemo(
@@ -597,9 +603,9 @@ function MainApp() {
       []
     );
 
-  /* ------------------------------
+  /* =======================================================
      TRANSACTIONS
-  ------------------------------- */
+  ======================================================= */
 
   const loadTransactions =
     async () => {
@@ -625,9 +631,9 @@ function MainApp() {
       }
     };
 
-  /* ------------------------------
-     LOADING SCREEN
-  ------------------------------- */
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (showLoading) {
     return (
@@ -639,15 +645,14 @@ function MainApp() {
     );
   }
 
-  /* ------------------------------
+  /* =======================================================
      FATAL ERROR
-  ------------------------------- */
+  ======================================================= */
 
   if (error && !user) {
     return (
       <div className="fatal-screen">
         <div className="fatal-card">
-
           <img
             src={LOGO}
             alt="MAI"
@@ -674,7 +679,6 @@ function MainApp() {
             Open this Mini App from
             the official Telegram bot.
           </small>
-
         </div>
       </div>
     );
@@ -683,10 +687,16 @@ function MainApp() {
   const canClaim =
     claimRemaining <= 0;
 
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
     <div className="mai-app">
 
-      {/* COSMIC BACKGROUND */}
+      {/* =================================================
+          COSMIC BACKGROUND
+      ================================================= */}
 
       <div className="cosmic-bg">
 
@@ -705,7 +715,9 @@ function MainApp() {
 
       </div>
 
-      {/* TOP HEADER */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
       <header className="main-header">
 
@@ -770,7 +782,9 @@ function MainApp() {
 
       </header>
 
-      {/* USER CARD */}
+      {/* =================================================
+          USER SUMMARY
+      ================================================= */}
 
       <div className="user-summary">
 
@@ -799,7 +813,8 @@ function MainApp() {
           </strong>
 
           <span>
-            ♛ {level > 0
+            ♛{' '}
+            {level > 0
               ? `Level ${level} Miner`
               : 'Diamond Miner'}
           </span>
@@ -812,11 +827,16 @@ function MainApp() {
 
       </div>
 
-      {/* QUICK ACTIONS */}
+      {/* =================================================
+          QUICK ACTIONS
+      ================================================= */}
 
       <div className="quick-actions">
 
+        {/* DAILY BONUS */}
+
         <button
+          type="button"
           onClick={handleClaim}
           disabled={
             !canClaim ||
@@ -829,11 +849,13 @@ function MainApp() {
           }
         >
 
-          <div className="quick-icon">
-            🎁
+          <div className="quick-icon quick-icon-bonus">
+            <span>
+              ✦
+            </span>
           </div>
 
-          <div>
+          <div className="quick-card-copy">
 
             <strong>
               Daily Bonus
@@ -855,25 +877,32 @@ function MainApp() {
 
         </button>
 
+        {/* TASKS */}
+
         <button
+          type="button"
           className="quick-card"
           onClick={() =>
             setTab('task')
           }
         >
 
-          <div className="quick-icon">
-            ✓
+          <div className="quick-icon quick-icon-task">
+
+            <span>
+              ✓
+            </span>
+
           </div>
 
-          <div>
+          <div className="quick-card-copy">
 
             <strong>
               Tasks
             </strong>
 
             <span>
-              Complete & Earn
+              Complete &amp; Earn
             </span>
 
           </div>
@@ -886,13 +915,16 @@ function MainApp() {
 
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* =================================================
+          BOOST PAGE
+      ================================================= */}
 
       {view === 'boost' ? (
 
         <main className="boost-page">
 
           <button
+            type="button"
             className="back-button"
             onClick={() =>
               setView('main')
@@ -928,6 +960,7 @@ function MainApp() {
 
               return (
                 <button
+                  type="button"
                   key={item.level}
                   className={
                     `level-card ${
@@ -973,9 +1006,12 @@ function MainApp() {
 
         <main className="content-area">
 
-          {/* HOME */}
+          {/* =================================================
+              HOME
+          ================================================= */}
 
           {tab === 'home' && (
+
             <section className="home-content">
 
               <div className="speed-chip">
@@ -1007,7 +1043,12 @@ function MainApp() {
                 }}
               />
 
+              {/* =================================================
+                  MAIN MINE BUTTON
+              ================================================= */}
+
               <button
+                type="button"
                 className="main-mine-button"
                 onClick={() => {
 
@@ -1039,6 +1080,10 @@ function MainApp() {
                 </b>
 
               </button>
+
+              {/* =================================================
+                  MINING PANELS
+              ================================================= */}
 
               <div className="mining-panels">
 
@@ -1099,9 +1144,14 @@ function MainApp() {
 
               </div>
 
+              {/* =================================================
+                  BOTTOM ACTIONS
+              ================================================= */}
+
               <div className="bottom-actions">
 
                 <button
+                  type="button"
                   className="action-tile"
                   onClick={() =>
                     setView('boost')
@@ -1135,6 +1185,7 @@ function MainApp() {
                 </button>
 
                 <button
+                  type="button"
                   className={
                     `action-tile ${
                       canClaim
@@ -1185,9 +1236,14 @@ function MainApp() {
 
               </div>
 
+              {/* =================================================
+                  STATS
+              ================================================= */}
+
               <div className="stats-row">
 
                 <div>
+
                   <span>
                     LEVEL
                   </span>
@@ -1195,9 +1251,11 @@ function MainApp() {
                   <strong>
                     {level}
                   </strong>
+
                 </div>
 
                 <div>
+
                   <span>
                     RATE
                   </span>
@@ -1206,9 +1264,11 @@ function MainApp() {
                     {miningSpeed.toFixed(2)}
                     /D
                   </strong>
+
                 </div>
 
                 <div>
+
                   <span>
                     STATUS
                   </span>
@@ -1216,9 +1276,14 @@ function MainApp() {
                   <strong className="green">
                     ● ONLINE
                   </strong>
+
                 </div>
 
               </div>
+
+              {/* =================================================
+                  SERVER NOTE
+              ================================================= */}
 
               <div className="server-note">
 
@@ -1234,11 +1299,15 @@ function MainApp() {
               </div>
 
             </section>
+
           )}
 
-          {/* TASKS */}
+          {/* =================================================
+              TASKS
+          ================================================= */}
 
           {tab === 'task' && (
+
             <div className="tab-page">
 
               <Tasks
@@ -1251,11 +1320,15 @@ function MainApp() {
               />
 
             </div>
+
           )}
 
-          {/* FRIENDS */}
+          {/* =================================================
+              FRIENDS
+          ================================================= */}
 
           {tab === 'friends' && (
+
             <div className="tab-page">
 
               <Friends
@@ -1267,11 +1340,15 @@ function MainApp() {
               />
 
             </div>
+
           )}
 
-          {/* PROFILE */}
+          {/* =================================================
+              PROFILE
+          ================================================= */}
 
           {tab === 'profile' && (
+
             <section className="profile-page">
 
               <div className="page-title">
@@ -1324,6 +1401,7 @@ function MainApp() {
                 <TonConnectButton />
 
                 {userAddress && (
+
                   <div className="wallet-address">
 
                     {userAddress.slice(0, 8)}
@@ -1331,9 +1409,11 @@ function MainApp() {
                     {userAddress.slice(-6)}
 
                   </div>
+
                 )}
 
                 <button
+                  type="button"
                   className="secondary-button"
                   onClick={
                     loadTransactions
@@ -1345,10 +1425,12 @@ function MainApp() {
               </div>
 
               {transactions.length > 0 && (
+
                 <div className="transaction-card">
 
                   {transactions.map(
                     (tx, index) => (
+
                       <div
                         className="transaction-row"
                         key={
@@ -1383,21 +1465,28 @@ function MainApp() {
                         </strong>
 
                       </div>
+
                     )
                   )}
 
                 </div>
+
               )}
 
             </section>
+
           )}
 
         </main>
+
       )}
 
-      {/* LEVEL MODAL */}
+      {/* =====================================================
+          LEVEL MODAL
+      ===================================================== */}
 
       {selectedLevel && (
+
         <div
           className="modal-overlay"
           onClick={() =>
@@ -1458,6 +1547,7 @@ function MainApp() {
             </div>
 
             <button
+              type="button"
               className="gold-button"
               onClick={() =>
                 setSelectedLevel(null)
@@ -1469,9 +1559,12 @@ function MainApp() {
           </div>
 
         </div>
+
       )}
 
-      {/* BOTTOM NAV */}
+      {/* =====================================================
+          BOTTOM NAVIGATION
+      ===================================================== */}
 
       <nav className="bottom-navigation">
 
@@ -1482,7 +1575,9 @@ function MainApp() {
           ['profile', 'Profile']
         ].map(
           ([id, label]) => (
+
             <button
+              type="button"
               key={id}
               className={
                 tab === id
@@ -1490,8 +1585,10 @@ function MainApp() {
                   : ''
               }
               onClick={() => {
+
                 setTab(id);
                 setView('main');
+
               }}
             >
 
@@ -1507,6 +1604,7 @@ function MainApp() {
               </span>
 
             </button>
+
           )
         )}
 
@@ -1516,9 +1614,9 @@ function MainApp() {
   );
 }
 
-/* ----------------------------------
-   APP WRAPPER
------------------------------------ */
+/* =========================================================
+   APP ROOT
+========================================================= */
 
 export default function App() {
   return (
