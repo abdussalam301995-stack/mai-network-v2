@@ -709,108 +709,182 @@ function atomicToTokenAmount(
 }
 
 
-async function fetchMaiWalletBalance(
-  walletAddress
-) {
-  const address =
-    String(
-      walletAddress ||
-      ''
-    ).trim();
+async function fetchMaiWalletBalance(walletAddress) {
+  const address = String(walletAddress || '').trim();
 
   if (!address) {
     return 0;
   }
 
-  const url =
-    `${TONAPI_BASE}/accounts/` +
-    `${encodeURIComponent(address)}` +
-    `/jettons/` +
-    `${encodeURIComponent(MAI_JETTON_MASTER)}`;
-
   const headers = {
-    Accept:
-      'application/json'
+    Accept: 'application/json'
   };
 
   if (TONAPI_KEY) {
-    headers.Authorization =
-      `Bearer ${TONAPI_KEY}`;
+    headers.Authorization = `Bearer ${TONAPI_KEY}`;
   }
 
-  const controller =
-    new AbortController();
+  const controller = new AbortController();
 
-  const timeout =
-    setTimeout(
-      () =>
-        controller.abort(),
-      10000
-    );
+  const timeout = setTimeout(
+    () => controller.abort(),
+    12000
+  );
 
   try {
-    const response =
-      await fetch(
-        url,
-        {
-          headers,
-          signal:
-            controller.signal
-        }
+    /* =====================================================
+       METHOD 1
+       Direct Jetton balance endpoint
+       ===================================================== */
+
+    const directUrl =
+      `${TONAPI_BASE}/accounts/` +
+      `${encodeURIComponent(address)}/jettons/` +
+      `${encodeURIComponent(MAI_JETTON_MASTER)}`;
+
+    try {
+      const response = await fetch(directUrl, {
+        headers,
+        signal: controller.signal
+      });
+
+      const data = await response
+        .json()
+        .catch(() => ({}));
+
+      if (response.ok) {
+        const rawBalance =
+          data?.balance ??
+          data?.jetton_balance ??
+          0;
+
+        const decimals = Number(
+          data?.jetton?.decimals ??
+          data?.decimals ??
+          MAI_DECIMALS
+        );
+
+        const result = atomicToTokenAmount(
+          rawBalance,
+          Number.isFinite(decimals)
+            ? decimals
+            : MAI_DECIMALS
+        );
+
+        console.log(
+          '[MAI WALLET] direct success:',
+          address.slice(0, 8),
+          result
+        );
+
+        return result;
+      }
+
+      console.warn(
+        '[MAI WALLET] direct endpoint failed:',
+        response.status,
+        data
       );
 
-    if (
-      response.status ===
-      404
-    ) {
+    } catch (directError) {
+      console.warn(
+        '[MAI WALLET] direct request error:',
+        directError.message
+      );
+    }
+
+
+    /* =====================================================
+       METHOD 2
+       Fetch ALL jettons and locate MAI
+       ===================================================== */
+
+    const listUrl =
+      `${TONAPI_BASE}/accounts/` +
+      `${encodeURIComponent(address)}/jettons`;
+
+    const listResponse = await fetch(listUrl, {
+      headers,
+      signal: controller.signal
+    });
+
+    const listData = await listResponse
+      .json()
+      .catch(() => ({}));
+
+    if (!listResponse.ok) {
+      throw new Error(
+        listData?.error ||
+        listData?.message ||
+        `TonAPI HTTP ${listResponse.status}`
+      );
+    }
+
+    const balances = Array.isArray(listData?.balances)
+      ? listData.balances
+      : [];
+
+    const normalizedMaster =
+      String(MAI_JETTON_MASTER).trim();
+
+    const mai = balances.find(item => {
+      const id = String(
+        item?.jetton?.address ??
+        item?.jetton?.id ??
+        item?.jetton_address ??
+        ''
+      ).trim();
+
+      return id === normalizedMaster;
+    });
+
+    if (!mai) {
+      console.log(
+        '[MAI WALLET] MAI jetton not found in wallet:',
+        address.slice(0, 8)
+      );
+
       return 0;
     }
 
-    const data =
-      await response
-        .json()
-        .catch(
-          () => ({})
-        );
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        data?.message ||
-        `TON API error ${response.status}`
-      );
-    }
-
     const rawBalance =
-      data?.balance ??
-      data?.jetton_balance ??
+      mai?.balance ??
+      mai?.jetton_balance ??
       0;
 
-    const decimals =
-      Number(
-        data?.jetton
-          ?.decimals ??
-        data?.decimals ??
-        MAI_DECIMALS
-      );
+    const decimals = Number(
+      mai?.jetton?.decimals ??
+      mai?.decimals ??
+      MAI_DECIMALS
+    );
 
-    return atomicToTokenAmount(
+    const result = atomicToTokenAmount(
       rawBalance,
-
-      Number.isFinite(
-        decimals
-      )
+      Number.isFinite(decimals)
         ? decimals
         : MAI_DECIMALS
     );
 
-  } finally {
-    clearTimeout(
-      timeout
+    console.log(
+      '[MAI WALLET] list fallback success:',
+      address.slice(0, 8),
+      result
     );
+
+    return result;
+
+  } catch (error) {
+    console.error(
+      '[MAI WALLET] final failure:',
+      error.message
+    );
+
+    throw error;
+
+  } finally {
+    clearTimeout(timeout);
   }
 }
-
 
 /* =========================================================
    HOLDING SNAPSHOT
