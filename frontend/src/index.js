@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import App from './App';
+import './App.css';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-
-root.render(
+const manifestUrl = process.env.REACT_APP_TONCONNECT_MANIFEST_URL || `${window.location.origin}/tonconnect.manifest.json`;
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <TonConnectUIProvider manifestUrl={manifestUrl}>
+      <App />
+    </TonConnectUIProvider>
   </React.StrictMode>
 );

@@ -1,5 +1,5 @@
 {
-  "url": "https://maitoken-nine.vercel.app",
+  "url": "https://YOUR_FRONTEND_DOMAIN.example",
   "name": "MAI Network",
-  "iconUrl": "https://maitoken-nine.vercel.app/logo.svg"
+  "iconUrl": "https://YOUR_FRONTEND_DOMAIN.example/assets/mai-logo.jpg"
 }
