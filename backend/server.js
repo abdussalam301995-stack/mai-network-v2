@@ -1531,7 +1531,32 @@ async function initDb() {
     );
   `);
 
+  /* =========================================================
+     LEGACY TABLE COLUMN MIGRATIONS
+     ========================================================= */
 
+  await pool.query(`
+    ALTER TABLE IF EXISTS daily_task_completions
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+
+    ALTER TABLE IF EXISTS ad_sessions
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+
+    ALTER TABLE IF EXISTS referral_milestones
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+
+    ALTER TABLE IF EXISTS campaign_completions
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+
+    ALTER TABLE IF EXISTS withdrawals
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+
+    ALTER TABLE IF EXISTS device_accounts
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+
+    ALTER TABLE IF EXISTS security_logs
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
+  `);
   console.log(
     'MAI Network database schema ready'
   );
