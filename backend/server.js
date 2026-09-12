@@ -91,6 +91,17 @@ app.use(rateLimit(180));
 
 async function initDb(){
   if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
+    await pool.query(`
+    ALTER TABLE IF EXISTS ad_sessions
+    ADD COLUMN IF NOT EXISTS day DATE;
+
+    UPDATE ad_sessions
+    SET day = COALESCE(started_at::date, CURRENT_DATE)
+    WHERE day IS NULL;
+
+    ALTER TABLE IF EXISTS ad_sessions
+    ALTER COLUMN day SET NOT NULL;
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users(
       telegram_id BIGINT PRIMARY KEY,
