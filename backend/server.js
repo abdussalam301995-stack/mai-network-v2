@@ -103,6 +103,10 @@ async function initDb(){
     ALTER COLUMN day SET NOT NULL;
   `);
   await pool.query(`
+  ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS photo_url TEXT;
+`);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users(
       telegram_id BIGINT PRIMARY KEY,
       username TEXT NOT NULL DEFAULT '', first_name TEXT NOT NULL DEFAULT 'User', photo_url TEXT,
