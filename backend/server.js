@@ -104,7 +104,9 @@ async function initDb(){
   `);
   await pool.query(`
   ALTER TABLE users
-  ADD COLUMN IF NOT EXISTS photo_url TEXT;
+    ADD COLUMN IF NOT EXISTS photo_url TEXT,
+    ADD COLUMN IF NOT EXISTS referred_by BIGINT,
+    ADD COLUMN IF NOT EXISTS referral_qualified BOOLEAN NOT NULL DEFAULT FALSE;
 `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users(
