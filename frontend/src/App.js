@@ -28,6 +28,9 @@ const LOADING = '/assets/loading.jpg';
 const MAI_JETTON_MASTER =
   'EQD5pWilwl9ypQ1JFxoDktsQl_LAALALnqHjZoxhx_2nET-r';
 
+const STON_BUY_URL =
+  'https://app.tonkeeper.com/dapp/https%3A%2F%2Fapp.ston.fi%2Fswap%3Fft%3DGRAM%26utm_source%3Dtonkeeper%26utm_medium%3Dorganic%26utm_campaign%3Ddefi%26utm_content%3DEQDCJL0iQHofcBBvFBHdVG233Ri2V4kCNFgfRT-gqAd3Oc86%26chartVisible%3Dfalse%26tt%3DEQD5pWilwl9ypQ1JFxoDktsQl_LAALALnqHjZoxhx_2nET-r';
+
 
 /* =========================================================
    TELEGRAM / DEVICE
@@ -369,6 +372,16 @@ function App() {
   const address =
     useTonAddress();
 
+  const [
+    walletHolding,
+    setWalletHolding
+  ] = useState(null);
+
+  const [
+    holdingLoading,
+    setHoldingLoading
+  ] = useState(false);
+
 
   /* -------------------------------------------------------
      PRELOAD IMPORTANT IMAGES
@@ -484,6 +497,86 @@ function App() {
   ]);
 
 
+  /* -------------------------------------------------------
+     LIVE MAI WALLET HOLDING
+     ------------------------------------------------------- */
+
+  const activeWalletAddress =
+    address ||
+    boot?.user?.walletAddress ||
+    '';
+
+  const loadWalletHolding =
+    useCallback(
+      async (
+        silent = false
+      ) => {
+
+        if (!activeWalletAddress) {
+          setWalletHolding(null);
+          return;
+        }
+
+        if (!silent) {
+          setHoldingLoading(true);
+        }
+
+        try {
+          const data =
+            await api(
+              '/api/wallet/mai-balance'
+            );
+
+          setWalletHolding(
+            Number(
+              data.balance || 0
+            )
+          );
+
+        } catch (error) {
+          console.warn(
+            'MAI wallet balance:',
+            error
+          );
+
+          setWalletHolding(null);
+
+        } finally {
+          if (!silent) {
+            setHoldingLoading(false);
+          }
+        }
+      },
+      [activeWalletAddress]
+    );
+
+
+  useEffect(() => {
+
+    loadWalletHolding();
+
+    if (!activeWalletAddress) {
+      return;
+    }
+
+    const timer =
+      setInterval(
+        () =>
+          loadWalletHolding(
+            true
+          ),
+        30000
+      );
+
+    return () =>
+      clearInterval(timer);
+
+  }, [
+    activeWalletAddress,
+    loadWalletHolding
+  ]);
+
+
   const action =
     async fn => {
       if (busy) return;
@@ -504,6 +597,58 @@ function App() {
 
   const user =
     boot?.user;
+
+  const safeWalletHolding =
+    Number.isFinite(
+      Number(walletHolding)
+    )
+      ? Number(walletHolding)
+      : 0;
+
+  const totalHolding =
+    user
+      ? Number(user.balance || 0) +
+        safeWalletHolding
+      : 0;
+
+  const displayLevel =
+    user
+      ? Math.max(
+          0,
+          Math.min(
+            Number(
+              user.maxLevel || 0
+            ),
+            Math.floor(
+              totalHolding /
+              Math.max(
+                1,
+                Number(
+                  user.holdingStep ||
+                  1000
+                )
+              )
+            )
+          )
+        )
+      : 0;
+
+  const displayLevelSpeed =
+    displayLevel > 0
+      ? 10 +
+        (
+          displayLevel - 1
+        ) *
+          2
+      : 0;
+
+  const displayMiningSpeed =
+    user
+      ? Number(
+          user.freeMiningSpeed || 0
+        ) +
+        displayLevelSpeed
+      : 0;
 
 
   if (loading) {
@@ -567,6 +712,15 @@ function App() {
           ? (
             <BoostPage
               user={user}
+              walletHolding={
+                safeWalletHolding
+              }
+              totalHolding={
+                totalHolding
+              }
+              currentLevel={
+                displayLevel
+              }
               selectedLevel={
                 selectedLevel
               }
@@ -608,8 +762,25 @@ function App() {
             <Home
               user={user}
               walletAddress={
-                address ||
-                user.walletAddress
+                activeWalletAddress
+              }
+              walletHolding={
+                walletHolding
+              }
+              holdingLoading={
+                holdingLoading
+              }
+              loadWalletHolding={
+                loadWalletHolding
+              }
+              totalHolding={
+                totalHolding
+              }
+              displayLevel={
+                displayLevel
+              }
+              displayMiningSpeed={
+                displayMiningSpeed
               }
               tasks={tasks}
               setTab={go}
@@ -688,6 +859,12 @@ function App() {
 function Home({
   user,
   walletAddress,
+  walletHolding,
+  holdingLoading,
+  loadWalletHolding,
+  totalHolding,
+  displayLevel,
+  displayMiningSpeed,
   tasks,
   setTab,
   setView,
@@ -710,16 +887,6 @@ function Home({
   const [
     coinPressed,
     setCoinPressed
-  ] = useState(false);
-
-  const [
-    walletHolding,
-    setWalletHolding
-  ] = useState(null);
-
-  const [
-    holdingLoading,
-    setHoldingLoading
   ] = useState(false);
 
   const audioContextRef =
@@ -756,91 +923,6 @@ function Home({
     return () =>
       clearInterval(timer);
   }, []);
-
-
-  /* -------------------------------------------------------
-     WALLET HOLDING
-     ------------------------------------------------------- */
-
-  const loadWalletHolding =
-    useCallback(
-      async (
-        silent = false
-      ) => {
-
-        if (!walletAddress) {
-          setWalletHolding(
-            null
-          );
-          return;
-        }
-
-        if (!silent) {
-          setHoldingLoading(
-            true
-          );
-        }
-
-        try {
-          const data =
-            await api(
-              '/api/wallet/mai-balance'
-            );
-
-          setWalletHolding(
-            Number(
-              data.balance || 0
-            )
-          );
-
-        } catch (error) {
-
-          console.warn(
-            'MAI wallet balance:',
-            error
-          );
-
-          setWalletHolding(
-            null
-          );
-
-        } finally {
-
-          if (!silent) {
-            setHoldingLoading(
-              false
-            );
-          }
-        }
-      },
-      [walletAddress]
-    );
-
-
-  useEffect(() => {
-
-    loadWalletHolding();
-
-    if (!walletAddress) {
-      return;
-    }
-
-    const timer =
-      setInterval(
-        () =>
-          loadWalletHolding(
-            true
-          ),
-        30000
-      );
-
-    return () =>
-      clearInterval(timer);
-
-  }, [
-    walletAddress,
-    loadWalletHolding
-  ]);
 
 
   /* -------------------------------------------------------
@@ -1014,38 +1096,27 @@ function Home({
 
     const now =
       Date.now();
-
-
-    const batch =
+          const burst =
       Array.from(
-        {
-          length: 18
-        },
-        (_, i) => {
+        { length: 18 },
+        (_, index) => {
 
           const angle =
             (
               Math.PI * 2 *
-              i
+              index
             ) / 18 +
-            (
-              Math.random() *
-              0.45
-            );
+            Math.random() *
+              0.35;
 
           const distance =
-            65 +
+            55 +
             Math.random() *
-            100;
-
-          const size =
-            4 +
-            Math.random() *
-            6;
+              95;
 
           return {
             id:
-              `${now}-${i}`,
+              `${now}-${index}`,
 
             x:
               centerX +
@@ -1053,7 +1124,7 @@ function Home({
                 Math.random() -
                 0.5
               ) *
-              24,
+                22,
 
             y:
               centerY +
@@ -1061,7 +1132,7 @@ function Home({
                 Math.random() -
                 0.5
               ) *
-              24,
+                22,
 
             dx:
               Math.cos(angle) *
@@ -1071,31 +1142,31 @@ function Home({
               Math.sin(angle) *
               distance,
 
-            size,
+            size:
+              4 +
+              Math.random() *
+                7,
+
+            rotate:
+              Math.floor(
+                Math.random() *
+                  360
+              ),
 
             delay:
               Math.random() *
-              70
+              0.08
           };
         }
       );
 
 
-    setSparks(batch);
+    setSparks(burst);
 
-    setCoinPressed(false);
-
-    requestAnimationFrame(
-      () =>
-        setCoinPressed(
-          true
-        )
-    );
+    setCoinPressed(true);
 
     playCoinSound();
 
-
-    /* Telegram haptic */
 
     try {
       tg()
@@ -1123,6 +1194,10 @@ function Home({
   };
 
 
+  /* -------------------------------------------------------
+     HOLDING DISPLAY
+     ------------------------------------------------------- */
+
   const holdingText =
     !walletAddress
       ? 'Connect Wallet'
@@ -1136,6 +1211,12 @@ function Home({
       : `${fmtHolding(
           walletHolding
         )} MAI`;
+
+
+  const gameBalance =
+    Number(
+      user.balance || 0
+    );
 
 
   return (
@@ -1172,6 +1253,11 @@ function Home({
         </div>
 
 
+        {/* =================================================
+            TOTAL MAI BALANCE
+            IN-GAME + TON WALLET
+            ================================================= */}
+
         <button
           className="balance glass"
           onClick={() =>
@@ -1186,15 +1272,18 @@ function Home({
           <div>
 
             <b>
-              {fmt(
-                user.balance,
-                4
+              {fmtHolding(
+                totalHolding
               )}
             </b>
 
             <span>
               MAI BALANCE
             </span>
+
+            <small>
+              Game + Wallet
+            </small>
 
           </div>
 
@@ -1203,7 +1292,9 @@ function Home({
         </button>
 
 
-        {/* Compact user */}
+        {/* =================================================
+            USER PROFILE
+            ================================================= */}
 
         <div className="profileMini glass">
 
@@ -1223,7 +1314,11 @@ function Home({
                   {
                     user
                       .firstName
-                      ?.[0] ||
+                      ?.slice(
+                        0,
+                        1
+                      )
+                      ?.toUpperCase() ||
                     'M'
                   }
                 </span>
@@ -1232,186 +1327,183 @@ function Home({
 
           </div>
 
+
           <div className="profileMiniText">
 
+            <span>
+              PLAYER
+            </span>
+
             <b>
-              {user.firstName}
+              {
+                user.firstName ||
+                'MAI User'
+              }
             </b>
 
-            <div className="profileMiniMeta">
-
-              <span>
-                LVL {user.level}
-              </span>
-
-              <small>
-                {
-                  user.referrals
-                    .successful
-                } Ref
-              </small>
-
-            </div>
+            <small>
+              LVL {displayLevel}
+            </small>
 
           </div>
 
         </div>
 
 
-        {/* Real wallet holding */}
+        {/* =================================================
+            WALLET HOLDING
+            ================================================= */}
 
         <button
-          className="walletHolding glass"
-          onClick={() =>
-            walletAddress
-              ? loadWalletHolding()
-              : setTab(
-                  'profile'
-                )
-          }
+          className="walletHoldingCard glass"
+          onClick={() => {
+
+            if (
+              walletAddress
+            ) {
+              loadWalletHolding();
+            }
+
+          }}
         >
 
-          <span className="walletHoldingIcon">
-            ◈
-          </span>
+          <div className="holdingIcon">
 
-          <div>
+            <MaiLogo />
 
-            <small>
+          </div>
+
+
+          <div className="holdingContent">
+
+            <span>
               WALLET HOLDING
-            </small>
+            </span>
 
             <b>
               {holdingText}
             </b>
 
+            <small>
+              {
+                walletAddress
+                  ? short(
+                      walletAddress
+                    )
+                  : 'TON Wallet'
+              }
+            </small>
+
           </div>
 
-          <em>↻</em>
+
+          {
+            walletAddress &&
+            (
+              <span
+                className={
+                  holdingLoading
+                    ? 'holdingRefresh spinning'
+                    : 'holdingRefresh'
+                }
+              >
+                ↻
+              </span>
+            )
+          }
 
         </button>
 
 
-        <div className="quickStack">
+        {/* =================================================
+            TASK CARD — RIGHT SIDE
+            ================================================= */}
 
-          <button
-            className="quick glass"
-            disabled={
-              user.dailyBonusClaimed ||
-              busy
-            }
-            onClick={() =>
-              action(
-                async () => {
+        <button
+          className="taskTopCard glass"
+          onClick={() =>
+            setTab('task')
+          }
+        >
 
-                  const data =
-                    await api(
-                      '/api/daily-bonus',
-                      {
-                        method:
-                          'POST'
-                      }
-                    );
-
-                  toast(
-                    `+${data.reward} MAI daily bonus`
-                  );
-
-                  await refresh();
-                }
-              )
-            }
-          >
-
-            <Icon name="gift" />
-
-            <span>
-
-              <b>
-                Daily Bonus
-              </b>
-
-              <small>
-                {
-                  user
-                    .dailyBonusClaimed
-                    ? 'Claimed today'
-                    : 'Claim 1 MAI'
-                }
-              </small>
-
-            </span>
-
-            <em>›</em>
-
-          </button>
-
-
-          <button
-            className="quick glass"
-            onClick={() =>
-              setTab('task')
-            }
-          >
-
+          <div className="taskTopIcon">
             <Icon name="task" />
+          </div>
+
+          <div>
 
             <span>
-
-              <b>
-                Tasks
-              </b>
-
-              <small>
-                Complete & Earn
-              </small>
-
+              TASK
             </span>
 
-            {tasks?.hasIncomplete && (
-              <i className="dot" />
-            )}
+            <b>
+              {
+                tasks?.filter?.(
+                  item =>
+                    !item.completed
+                )?.length ??
+                tasks?.length ??
+                0
+              }
+              {' '}
+              Available
+            </b>
 
-            <em>›</em>
+            <small>
+              Earn more MAI
+            </small>
 
-          </button>
+          </div>
 
-        </div>
+          <em>›</em>
+
+        </button>
 
       </section>
 
 
       {/* ===================================================
-          MAI HERO COIN
+          MAIN MINING COIN
           =================================================== */}
 
-      <section className="hero">
+      <section className="coinArea">
+
+        <div className="coinAura coinAuraOne" />
+        <div className="coinAura coinAuraTwo" />
+        <div className="coinAura coinAuraThree" />
+
 
         <button
+          type="button"
           className={
             coinPressed
-              ? 'coin coinTapped'
-              : 'coin'
+              ? 'mainCoin coinPressed'
+              : 'mainCoin'
           }
           onClick={tap}
-          aria-label="MAI coin"
+          aria-label="MAI Coin"
         >
 
-          <span className="coinGlow" />
+          <span className="coinOuterRing">
 
-          <span className="orbit o1" />
-          <span className="orbit o2" />
+            <span className="coinMiddleRing">
 
-          <MaiLogo
-            className="coinImage"
-            alt="MAI"
-          />
+              <span className="coinInner">
+
+                <MaiLogo
+                  className="mainCoinLogo"
+                />
+
+              </span>
+
+            </span>
+
+          </span>
 
 
-          <span
-            className="coinFlash"
-            aria-hidden="true"
-          />
+          <span className="coinShine" />
+
+          <span className="coinShineSecond" />
 
 
           {sparks.map(
@@ -1419,13 +1511,13 @@ function Home({
 
               <i
                 key={spark.id}
-                className="spark"
+                className="goldSpark"
                 style={{
                   left:
-                    spark.x,
+                    `${spark.x}px`,
 
                   top:
-                    spark.y,
+                    `${spark.y}px`,
 
                   width:
                     `${spark.size}px`,
@@ -1433,14 +1525,17 @@ function Home({
                   height:
                     `${spark.size}px`,
 
-                  animationDelay:
-                    `${spark.delay}ms`,
-
-                  '--dx':
+                  '--spark-x':
                     `${spark.dx}px`,
 
-                  '--dy':
-                    `${spark.dy}px`
+                  '--spark-y':
+                    `${spark.dy}px`,
+
+                  '--spark-rotate':
+                    `${spark.rotate}deg`,
+
+                  animationDelay:
+                    `${spark.delay}s`
                 }}
               />
 
@@ -1448,6 +1543,101 @@ function Home({
           )}
 
         </button>
+
+
+        <div className="coinTapHint">
+
+          <span>
+            TAP MAI COIN
+          </span>
+
+          <small>
+            ✦ Feel the MAI energy ✦
+          </small>
+
+        </div>
+
+      </section>
+
+
+      {/* ===================================================
+          BALANCE / MINING INFORMATION
+          =================================================== */}
+
+      <section className="miningSummary glass">
+
+        <div className="summaryMain">
+
+          <span>
+            TOTAL MAI BALANCE
+          </span>
+
+          <strong>
+            {fmtHolding(
+              totalHolding
+            )}
+          </strong>
+
+          <small>
+            MAI
+          </small>
+
+        </div>
+
+
+        <div className="summaryDivider" />
+
+
+        <div className="summaryStats">
+
+          <div>
+
+            <span>
+              IN-GAME
+            </span>
+
+            <b>
+              {fmtHolding(
+                gameBalance
+              )}
+            </b>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              WALLET
+            </span>
+
+            <b>
+              {
+                walletHolding ===
+                null
+                  ? '—'
+                  : fmtHolding(
+                      walletHolding
+                    )
+              }
+            </b>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              LEVEL
+            </span>
+
+            <b>
+              LVL {displayLevel}
+            </b>
+
+          </div>
+
+        </div>
 
       </section>
 
@@ -1480,6 +1670,19 @@ function Home({
               {' '}
               MAI / SEC
             </b>
+
+            <small>
+              LVL {displayLevel}
+              {' · '}
+              {
+                fmt(
+                  displayMiningSpeed,
+                  2
+                )
+              }
+              {' '}
+              MAI / Day
+            </small>
 
           </div>
 
@@ -1533,13 +1736,15 @@ function Home({
             </span>
 
             <b>
-              LVL {user.level}
+              LVL {displayLevel}
             </b>
 
             <small>
               {
-                user
-                  .miningSpeed
+                fmt(
+                  displayMiningSpeed,
+                  2
+                )
               }
               {' '}
               MAI / Day total
@@ -1604,7 +1809,12 @@ function Home({
                   );
                 }
 
+
                 await refresh();
+
+                await loadWalletHolding(
+                  true
+                );
               }
             )
           }
@@ -1674,11 +1884,14 @@ function Home({
 
 
 /* =========================================================
-   BOOST
+   BOOST PAGE
    ========================================================= */
 
 function BoostPage({
   user,
+  walletHolding,
+  totalHolding,
+  currentLevel,
   selectedLevel,
   setSelectedLevel,
   back
@@ -1689,11 +1902,25 @@ function BoostPage({
 
   const per = 20;
 
+  const maxLevel =
+    Number(
+      user.maxLevel || 100
+    );
+
+  const holdingStep =
+    Math.max(
+      1,
+      Number(
+        user.holdingStep ||
+        1000
+      )
+    );
+
   const pages =
     Math.ceil(
-      user.maxLevel /
-      per
+      maxLevel / per
     );
+
 
   const levels =
     useMemo(
@@ -1703,7 +1930,7 @@ function BoostPage({
             length:
               Math.min(
                 per,
-                user.maxLevel -
+                maxLevel -
                   (
                     page - 1
                   ) *
@@ -1720,10 +1947,14 @@ function BoostPage({
         ),
       [
         page,
-        user.maxLevel
+        maxLevel
       ]
     );
 
+
+  /* -------------------------------------------------------
+     SELECTED LEVEL DETAILS
+     ------------------------------------------------------- */
 
   if (selectedLevel) {
 
@@ -1731,8 +1962,7 @@ function BoostPage({
       selectedLevel;
 
     const need =
-      n *
-      user.holdingStep;
+      n * holdingStep;
 
     const speed =
       10 +
@@ -1745,11 +1975,11 @@ function BoostPage({
       Math.max(
         0,
         need -
-          user.balance
+          totalHolding
       );
 
     const unlocked =
-      user.balance >=
+      totalHolding >=
       need;
 
 
@@ -1769,19 +1999,49 @@ function BoostPage({
             className={
               unlocked
                 ? 'levelSeal unlocked'
-                : 'levelSeal'
+                : 'levelSeal locked'
             }
           >
 
-            <MaiLogo
-              className="levelSealLogo"
-            />
+            <div className="levelLogoWrap">
 
-            <span>
+              <MaiLogo
+                className="levelMaiLogo"
+              />
+
+              {!unlocked && (
+                <div className="levelLockShade">
+                  🔒
+                </div>
+              )}
+
+            </div>
+
+
+            <div className="levelNumberBadge">
               LVL {n}
-            </span>
+            </div>
 
           </div>
+
+        </div>
+
+
+        <div className="levelStatusTitle">
+
+          <span
+            className={
+              unlocked
+                ? 'statusDot unlocked'
+                : 'statusDot locked'
+            }
+          />
+
+          {
+            unlocked
+              ? `LEVEL ${n} UNLOCKED`
+              : `LEVEL ${n} LOCKED`
+          }
 
         </div>
 
@@ -1790,33 +2050,57 @@ function BoostPage({
 
           <Row
             a="Mining Speed"
-            b={`${speed} MAI per Day`}
+            b={`${fmt(
+              speed,
+              0
+            )} MAI / Day`}
           />
 
           <Row
-            a="Need-Holding unlock level"
-            b={`${fmt(
-              need,
-              0
+            a="Required MAI Holding"
+            b={`${fmtHolding(
+              need
             )} MAI`}
           />
 
           <Row
-            a="Your Holding"
-            b={`${fmt(
-              user.balance,
-              4
+            a="In-Game Balance"
+            b={`${fmtHolding(
+              user.balance
+            )} MAI`}
+          />
+
+          <Row
+            a="TON Wallet Holding"
+            b={`${fmtHolding(
+              walletHolding
+            )} MAI`}
+          />
+
+          <Row
+            a="Total MAI Balance"
+            b={`${fmtHolding(
+              totalHolding
             )} MAI`}
             big
           />
 
           <Row
-            a="Need to unlock"
-            b={`${fmt(
-              missing,
-              4
-            )} MAI`}
-            danger={!unlocked}
+            a={
+              unlocked
+                ? 'Level Status'
+                : 'MAI Needed'
+            }
+            b={
+              unlocked
+                ? 'UNLOCKED'
+                : `${fmtHolding(
+                    missing
+                  )} MAI`
+            }
+            danger={
+              !unlocked
+            }
           />
 
         </div>
@@ -1825,8 +2109,9 @@ function BoostPage({
         {unlocked
           ? (
             <>
+
               <div className="unlockedBtn">
-                🔓 UNLOCKED
+                🔓 LEVEL {n} UNLOCKED
               </div>
 
               <button
@@ -1839,6 +2124,7 @@ function BoostPage({
               >
                 CLOSE
               </button>
+
             </>
           )
 
@@ -1847,15 +2133,38 @@ function BoostPage({
 
               <button
                 className="goldBtn"
-                onClick={() =>
-                  window.open(
-                    'https://app.ston.fi',
-                    '_blank'
-                  )
-                }
+                onClick={() => {
+
+                  try {
+
+                    const web =
+                      tg();
+
+                    if (
+                      web?.openLink
+                    ) {
+                      web.openLink(
+                        STON_BUY_URL
+                      );
+                    } else {
+                      window.open(
+                        STON_BUY_URL,
+                        '_blank',
+                        'noopener,noreferrer'
+                      );
+                    }
+
+                  } catch {
+
+                    window.location.href =
+                      STON_BUY_URL;
+                  }
+
+                }}
               >
-                BUY
+                BUY MAI
               </button>
+
 
               <button
                 className="secondary"
@@ -1865,111 +2174,172 @@ function BoostPage({
                   )
                 }
               >
-                CANCEL
+                BACK
               </button>
 
             </div>
           )
         }
 
-
-        <p className="hint">
-
-          Free Bonus Level adds{' '}
-          {user.freeMiningSpeed}
-          {' '}
-          MAI/day to the unlocked
-          level speed.
-
-        </p>
-
       </PageShell>
     );
   }
 
 
+  /* -------------------------------------------------------
+     LEVEL LIST
+     ------------------------------------------------------- */
+
   return (
     <PageShell
-      title="BOOST"
+      title="BOOST LEVEL"
       back={back}
     >
 
-      <MaiLogo
-        className="boostLogo"
-      />
+      <section className="boostBalance glass">
+
+        <div className="boostBalanceLogo">
+          <MaiLogo />
+        </div>
 
 
-      <div className="boostNote">
+        <div>
 
-        <b>
-          HOLD MAI in your wallet
-          boost your mining rate.
-        </b>
+          <span>
+            TOTAL MAI BALANCE
+          </span>
 
-        <span>
-          If sell MAI your level
-          is DOWN.
-        </span>
+          <strong>
+            {fmtHolding(
+              totalHolding
+            )}
+          </strong>
+
+          <small>
+            In-game + TON wallet
+          </small>
+
+        </div>
+
+
+        <div className="currentLevelPill">
+
+          <span>
+            CURRENT
+          </span>
+
+          <b>
+            LVL {currentLevel}
+          </b>
+
+        </div>
+
+      </section>
+
+
+      <div className="boostIntro">
+
+        <h3>
+          MAI HOLDING LEVEL
+        </h3>
+
+        <p>
+          Your level automatically
+          follows your total MAI
+          balance.
+        </p>
+
+        <small>
+          Every {fmtHolding(
+            holdingStep
+          )} MAI unlocks the next level.
+        </small>
 
       </div>
 
 
-      <div className="levelGrid">
+      <div className="levels">
 
-        {levels.map(n => {
+        {levels.map(
+          n => {
 
-          const speed =
-            10 +
-            (
-              n - 1
-            ) *
-              2;
+            const need =
+              n *
+              holdingStep;
 
-          const unlocked =
-            user.balance >=
-            n *
-              user.holdingStep;
+            const unlocked =
+              totalHolding >=
+              need;
 
-          return (
-            <button
-              key={n}
-              className="levelCard"
-              onClick={() =>
-                setSelectedLevel(
-                  n
-                )
-              }
-            >
+            const isCurrent =
+              n ===
+              currentLevel;
 
-              <b>
-                LVL {n}
-              </b>
-
-              <span>
-                MAI LVL {n}
-              </span>
-
-              <strong>
-                Speed {speed}/Day
-              </strong>
-
-              <em
-                className={
+            return (
+              <button
+                key={n}
+                className={[
+                  'levelCard',
                   unlocked
-                    ? 'u'
+                    ? 'unlocked'
+                    : 'locked',
+                  isCurrent
+                    ? 'current'
                     : ''
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() =>
+                  setSelectedLevel(
+                    n
+                  )
                 }
               >
-                {
-                  unlocked
-                    ? 'UNLOCK'
-                    : 'LOCK'
-                }
-              </em>
 
-            </button>
-          );
-        })}
+                <div className="levelCoin">
+
+                  <MaiLogo
+                    className="levelCoinLogo"
+                  />
+
+                  {!unlocked && (
+                    <span className="levelCoinLock">
+                      🔒
+                    </span>
+                  )}
+
+                </div>
+
+
+                <div className="levelCardText">
+
+                  <strong>
+                    LVL {n}
+                  </strong>
+
+                  <span>
+                    {
+                      unlocked
+                        ? 'UNLOCKED'
+                        : `${fmtHolding(
+                            need
+                          )} MAI`
+                    }
+                  </span>
+
+                </div>
+
+
+                {isCurrent && (
+                  <span className="currentMark">
+                    CURRENT
+                  </span>
+                )}
+
+              </button>
+            );
+          }
+        )}
 
       </div>
 
@@ -1977,12 +2347,15 @@ function BoostPage({
       <div className="pager">
 
         <button
+          disabled={
+            page <= 1
+          }
           onClick={() =>
             setPage(
-              p =>
+              old =>
                 Math.max(
                   1,
-                  p - 1
+                  old - 1
                 )
             )
           }
@@ -1990,17 +2363,22 @@ function BoostPage({
           ‹
         </button>
 
+
         <span>
-          {page} / {pages}
+          PAGE {page} / {pages}
         </span>
 
+
         <button
+          disabled={
+            page >= pages
+          }
           onClick={() =>
             setPage(
-              p =>
+              old =>
                 Math.min(
                   pages,
-                  p + 1
+                  old + 1
                 )
             )
           }
@@ -2016,7 +2394,7 @@ function BoostPage({
 
 
 /* =========================================================
-   ROW / PAGE SHELL
+   SIMPLE ROW
    ========================================================= */
 
 function Row({
@@ -2027,22 +2405,35 @@ function Row({
 }) {
   return (
     <div
-      className={
-        `row ${
-          big ? 'big' : ''
-        } ${
-          danger
-            ? 'danger'
-            : ''
-        }`
-      }
+      className={[
+        'detailRow',
+        big
+          ? 'big'
+          : '',
+        danger
+          ? 'danger'
+          : ''
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
-      <span>{a}</span>
-      <b>{b}</b>
+
+      <span>
+        {a}
+      </span>
+
+      <b>
+        {b}
+      </b>
+
     </div>
   );
 }
 
+
+/* =========================================================
+   PAGE SHELL
+   ========================================================= */
 
 function PageShell({
   title,
@@ -2050,31 +2441,38 @@ function PageShell({
   children
 }) {
   return (
-    <div className="subPage">
+    <div className="pageShell">
 
-      <header>
+      <header className="pageHeader">
 
         <button
+          className="backBtn"
           onClick={back}
         >
-          ←
+          ‹
         </button>
 
-        <h2>
-          {title}
-        </h2>
+        <div>
 
-        <span />
+          <MaiLogo />
+
+          <strong>
+            {title}
+          </strong>
+
+        </div>
+
+        <span className="headerSpace" />
 
       </header>
 
-      {children}
+      <div className="pageContent">
+        {children}
+      </div>
 
     </div>
   );
 }
-
-
 /* =========================================================
    TASKS
    ========================================================= */
@@ -3975,7 +4373,7 @@ function WithdrawPage({
 
           <span>
             Available Balance
-          </span>
+                      </span>
 
           <b>
             {

@@ -16,9 +16,7 @@ app.set('trust proxy', 1);
    ========================================================= */
 
 const PORT =
-  Number(
-    process.env.PORT || 5000
-  );
+  Number(process.env.PORT || 5000);
 
 const BOT_TOKEN =
   process.env.BOT_TOKEN || '';
@@ -48,45 +46,45 @@ const allowedOrigins =
 
 
 /* =========================================================
-   MAI JETTON / TON CENTER
+   MAI TOKEN / TON API CONFIG
    ========================================================= */
 
 const MAI_JETTON_MASTER =
   process.env.MAI_JETTON_MASTER ||
   'EQD5pWilwl9ypQ1JFxoDktsQl_LAALALnqHjZoxhx_2nET-r';
 
-const MAI_JETTON_DECIMALS =
-  Math.max(
-    0,
-    Math.min(
-      255,
-      Number(
-        process.env
-          .MAI_JETTON_DECIMALS ||
-        9
-      )
-    )
-  );
-
-const TONCENTER_API_BASE =
+const TONAPI_BASE =
   String(
-    process.env
-      .TONCENTER_API_BASE ||
-    'https://toncenter.com/api/v3'
+    process.env.TONAPI_BASE ||
+    'https://tonapi.io/v2'
   ).replace(/\/$/, '');
 
-const TONCENTER_API_KEY =
-  process.env
-    .TONCENTER_API_KEY ||
-  '';
+const TONAPI_KEY =
+  process.env.TONAPI_KEY || '';
+
+const MAI_DECIMALS =
+  Number(
+    process.env.MAI_DECIMALS || 9
+  );
 
 
 /* =========================================================
    APP CONFIG
    ========================================================= */
 
-const cfg = {
+function num(name, fallback) {
+  const n =
+    Number(
+      process.env[name]
+    );
 
+  return Number.isFinite(n)
+    ? n
+    : fallback;
+}
+
+
+const cfg = {
   initialBalance:
     num(
       'INITIAL_BALANCE',
@@ -154,18 +152,15 @@ const cfg = {
     ),
 
   adProviderMode:
-    process.env
-      .AD_PROVIDER_MODE ||
+    process.env.AD_PROVIDER_MODE ||
     'external',
 
   adProviderUrl:
-    process.env
-      .AD_PROVIDER_URL ||
+    process.env.AD_PROVIDER_URL ||
     '',
 
   adWebhookSecret:
-    process.env
-      .AD_WEBHOOK_SECRET ||
+    process.env.AD_WEBHOOK_SECRET ||
     '',
 
   taskReward:
@@ -248,8 +243,7 @@ const cfg = {
 
   devicePolicy:
     (
-      process.env
-        .DEVICE_POLICY ||
+      process.env.DEVICE_POLICY ||
       'observe'
     ).toLowerCase(),
 
@@ -266,90 +260,71 @@ const cfg = {
     ),
 
   blockWithdrawOnRisk:
-    process.env
-      .BLOCK_WITHDRAW_ON_RISK !==
+    process.env.BLOCK_WITHDRAW_ON_RISK !==
     'false'
 };
 
 
 /* =========================================================
-   TELEGRAM TASKS
+   DAILY TASK CONFIG
    ========================================================= */
 
 const tasks = {
-
   news: {
-
     key: 'news',
 
-    title:
-      'MAI News',
+    title: 'MAI News',
 
     chatId:
-      process.env
-        .NEWS_CHAT_ID ||
+      process.env.NEWS_CHAT_ID ||
       '@MAI_News_Official',
 
     link:
-      process.env
-        .NEWS_LINK ||
+      process.env.NEWS_LINK ||
       'https://t.me/MAI_News_Official'
   },
 
-
   payout: {
-
     key: 'payout',
 
-    title:
-      'MAI Pay Out',
+    title: 'MAI Pay Out',
 
     chatId:
-      process.env
-        .PAYOUT_CHAT_ID ||
+      process.env.PAYOUT_CHAT_ID ||
       '@MAI_Payout_Proof',
 
     link:
-      process.env
-        .PAYOUT_LINK ||
+      process.env.PAYOUT_LINK ||
       'https://t.me/MAI_Payout_Proof'
   },
 
-
   chat: {
-
     key: 'chat',
 
-    title:
-      'MAI Chat Group',
+    title: 'MAI Chat Group',
 
     chatId:
-      process.env
-        .COMMUNITY_CHAT_ID ||
+      process.env.COMMUNITY_CHAT_ID ||
       '@MAICommunityChat',
 
     link:
-      process.env
-        .COMMUNITY_LINK ||
+      process.env.COMMUNITY_LINK ||
       'https://t.me/MAICommunityChat'
   }
 };
 
 
 /* =========================================================
-   POSTGRES
+   DATABASE
    ========================================================= */
 
 const pool =
   new Pool({
-
     connectionString:
-      process.env
-        .DATABASE_URL,
+      process.env.DATABASE_URL,
 
     ssl:
-      process.env
-        .DATABASE_SSL ===
+      process.env.DATABASE_SSL ===
       'false'
         ? false
         : {
@@ -383,16 +358,12 @@ app.use(
 
 app.use(
   cors({
-
-    origin(
-      origin,
-      cb
-    ) {
-
+    origin(origin, cb) {
       if (
         !origin ||
-        allowedOrigins
-          .includes(origin)
+        allowedOrigins.includes(
+          origin
+        )
       ) {
         return cb(
           null,
@@ -400,7 +371,7 @@ app.use(
         );
       }
 
-      cb(
+      return cb(
         new Error(
           'CORS blocked'
         )
@@ -414,17 +385,11 @@ app.use(
     ],
 
     allowedHeaders: [
-
       'Content-Type',
-
       'X-Telegram-Init-Data',
-
       'X-MAI-Device-ID',
-
       'X-Idempotency-Key',
-
       'X-Admin-Key',
-
       'X-Dev-User'
     ]
   })
@@ -440,30 +405,12 @@ app.use(
 
 
 /* =========================================================
-   HELPERS
+   GENERAL HELPERS
    ========================================================= */
-
-function num(
-  name,
-  fallback
-) {
-
-  const n =
-    Number(
-      process.env[name]
-    );
-
-  return Number
-    .isFinite(n)
-      ? n
-      : fallback;
-}
-
 
 function utcDay(
   d = new Date()
 ) {
-
   return d
     .toISOString()
     .slice(
@@ -474,7 +421,6 @@ function utcDay(
 
 
 function hash(v) {
-
   return crypto
     .createHash(
       'sha256'
@@ -491,24 +437,18 @@ function hash(v) {
 
 
 function safeNumber(v) {
-
   const n =
     Number(v);
 
-  return Number
-    .isFinite(n)
-      ? n
-      : 0;
+  return Number.isFinite(n)
+    ? n
+    : 0;
 }
 
 
-function levelFor(
-  balance
-) {
-
+function levelFor(balance) {
   return Math.max(
     0,
-
     Math.min(
       cfg.maxLevel,
 
@@ -516,32 +456,28 @@ function levelFor(
         safeNumber(
           balance
         ) /
-        cfg.holdingStep
+        Math.max(
+          1,
+          cfg.holdingStep
+        )
       )
     )
   );
 }
 
 
-function levelSpeed(
-  level
-) {
-
+function levelSpeed(level) {
   return level > 0
     ? cfg.level1Daily +
         (
           level - 1
         ) *
-        cfg.levelStep
-
+          cfg.levelStep
     : 0;
 }
 
 
-function totalDailyFor(
-  balance
-) {
-
+function totalDailyFor(balance) {
   return (
     cfg.freeDaily +
     levelSpeed(
@@ -553,28 +489,21 @@ function totalDailyFor(
 }
 
 
-function referralLink(
-  id
-) {
-
+function referralLink(id) {
   return (
-    `https://t.me/` +
-    `${BOT_USERNAME}` +
+    `https://t.me/${BOT_USERNAME}` +
     `?startapp=r_${id}`
   );
 }
 
 
 function milestoneConfig() {
-
   return String(
-    process.env
-      .REFERRAL_MILESTONES ||
+    process.env.REFERRAL_MILESTONES ||
     '5:25,10:60,25:175,50:400,100:1000'
   )
     .split(',')
     .map(x => {
-
       const [
         count,
         reward
@@ -596,27 +525,22 @@ function milestoneConfig() {
 }
 
 
-function computeFee(
-  amount
-) {
-
+function computeFee(amount) {
   return Math.max(
     0,
 
     cfg.withdrawFeeFixed +
-
     amount *
-    (
-      cfg
-        .withdrawFeePercent /
-      100
-    )
+      (
+        cfg.withdrawFeePercent /
+        100
+      )
   );
 }
 
 
 /* =========================================================
-   ADMIN
+   ADMIN MIDDLEWARE
    ========================================================= */
 
 function admin(
@@ -624,18 +548,19 @@ function admin(
   res,
   next
 ) {
-
   if (
     !ADMIN_KEY ||
     req.get(
       'X-Admin-Key'
-    ) !== ADMIN_KEY
+    ) !==
+      ADMIN_KEY
   ) {
-
     return res
       .status(401)
       .json({
-        success: false,
+        success:
+          false,
+
         message:
           'Admin authorization failed'
       });
@@ -657,13 +582,11 @@ function rateLimit(
   max = 120,
   windowMs = 60000
 ) {
-
   return (
     req,
     res,
     next
   ) => {
-
     const key =
       `${req.ip}:${req.path}`;
 
@@ -675,22 +598,17 @@ function rateLimit(
         key
       );
 
-
     if (
       !bucket ||
       now -
         bucket.start >
         windowMs
     ) {
-
       bucket = {
-        start:
-          now,
-        count:
-          0
+        start: now,
+        count: 0
       };
     }
-
 
     bucket.count++;
 
@@ -699,12 +617,10 @@ function rateLimit(
       bucket
     );
 
-
     if (
       bucket.count >
       max
     ) {
-
       return res
         .status(429)
         .json({
@@ -715,7 +631,6 @@ function rateLimit(
             'Too many requests'
         });
     }
-
 
     next();
   };
@@ -728,16 +643,301 @@ app.use(
 
 
 /* =========================================================
+   TON / MAI WALLET HELPERS
+   ========================================================= */
+
+function atomicToTokenAmount(
+  value,
+  decimals = MAI_DECIMALS
+) {
+  const raw =
+    String(
+      value ?? '0'
+    ).trim();
+
+  if (
+    !/^-?\d+$/.test(
+      raw
+    )
+  ) {
+    return 0;
+  }
+
+  const negative =
+    raw.startsWith(
+      '-'
+    );
+
+  const digits =
+    negative
+      ? raw.slice(1)
+      : raw;
+
+  if (
+    decimals <= 0
+  ) {
+    return safeNumber(
+      `${negative ? '-' : ''}${digits}`
+    );
+  }
+
+  const padded =
+    digits.padStart(
+      decimals + 1,
+      '0'
+    );
+
+  const whole =
+    padded.slice(
+      0,
+      -decimals
+    ) || '0';
+
+  const fraction =
+    padded.slice(
+      -decimals
+    );
+
+  const text =
+    `${negative ? '-' : ''}` +
+    `${whole}.` +
+    `${fraction}`;
+
+  return safeNumber(
+    text
+  );
+}
+
+
+async function fetchMaiWalletBalance(
+  walletAddress
+) {
+  const address =
+    String(
+      walletAddress ||
+      ''
+    ).trim();
+
+  if (!address) {
+    return 0;
+  }
+
+  const url =
+    `${TONAPI_BASE}/accounts/` +
+    `${encodeURIComponent(address)}` +
+    `/jettons/` +
+    `${encodeURIComponent(MAI_JETTON_MASTER)}`;
+
+  const headers = {
+    Accept:
+      'application/json'
+  };
+
+  if (TONAPI_KEY) {
+    headers.Authorization =
+      `Bearer ${TONAPI_KEY}`;
+  }
+
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(
+      () =>
+        controller.abort(),
+      10000
+    );
+
+  try {
+    const response =
+      await fetch(
+        url,
+        {
+          headers,
+          signal:
+            controller.signal
+        }
+      );
+
+    if (
+      response.status ===
+      404
+    ) {
+      return 0;
+    }
+
+    const data =
+      await response
+        .json()
+        .catch(
+          () => ({})
+        );
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        data?.message ||
+        `TON API error ${response.status}`
+      );
+    }
+
+    const rawBalance =
+      data?.balance ??
+      data?.jetton_balance ??
+      0;
+
+    const decimals =
+      Number(
+        data?.jetton
+          ?.decimals ??
+        data?.decimals ??
+        MAI_DECIMALS
+      );
+
+    return atomicToTokenAmount(
+      rawBalance,
+
+      Number.isFinite(
+        decimals
+      )
+        ? decimals
+        : MAI_DECIMALS
+    );
+
+  } finally {
+    clearTimeout(
+      timeout
+    );
+  }
+}
+
+
+/* =========================================================
+   HOLDING SNAPSHOT
+   In-game + TON wallet = total holding
+   ========================================================= */
+
+async function getUserHoldingSnapshot(
+  userOrId,
+  client = pool
+) {
+  let user;
+
+  if (
+    typeof userOrId ===
+      'object' &&
+    userOrId !== null
+  ) {
+    user =
+      userOrId;
+
+  } else {
+    const q =
+      await client.query(
+        `
+        SELECT
+          telegram_id,
+          balance,
+          wallet_address
+        FROM users
+        WHERE telegram_id=$1
+        `,
+        [
+          userOrId
+        ]
+      );
+
+    user =
+      q.rows[0];
+  }
+
+  if (!user) {
+    return {
+      inGame:
+        0,
+
+      wallet:
+        0,
+
+      total:
+        0,
+
+      level:
+        0,
+
+      levelSpeed:
+        0,
+
+      totalDaily:
+        cfg.freeDaily
+    };
+  }
+
+  const inGame =
+    safeNumber(
+      user.balance
+    );
+
+  let wallet = 0;
+
+  if (
+    user.wallet_address
+  ) {
+    try {
+      wallet =
+        await fetchMaiWalletBalance(
+          user.wallet_address
+        );
+
+    } catch (error) {
+      console.error(
+        'MAI wallet balance read failed:',
+        error.message
+      );
+
+      wallet = 0;
+    }
+  }
+
+  const total =
+    inGame +
+    wallet;
+
+  const level =
+    levelFor(
+      total
+    );
+
+  const levelSpeedValue =
+    levelSpeed(
+      level
+    );
+
+  const totalDaily =
+    cfg.freeDaily +
+    levelSpeedValue;
+
+  return {
+    inGame,
+    wallet,
+    total,
+    level,
+    levelSpeed:
+      levelSpeedValue,
+    totalDaily
+  };
+}
+
+
+/* =========================================================
    DATABASE INITIALIZATION
    ========================================================= */
 
 async function initDb() {
 
   if (
-    !process.env
-      .DATABASE_URL
+    !process.env.DATABASE_URL
   ) {
-
     throw new Error(
       'DATABASE_URL is required'
     );
@@ -745,25 +945,30 @@ async function initDb() {
 
 
   /* -------------------------------------------------------
-     USERS
+     USERS TABLE FIRST
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-
+    CREATE TABLE IF NOT EXISTS users(
       telegram_id BIGINT PRIMARY KEY,
 
-      username TEXT NOT NULL DEFAULT '',
+      username TEXT
+        NOT NULL
+        DEFAULT '',
 
-      first_name TEXT NOT NULL DEFAULT 'User',
+      first_name TEXT
+        NOT NULL
+        DEFAULT 'User',
 
       photo_url TEXT,
 
       balance NUMERIC(30,8)
-        NOT NULL DEFAULT 0,
+        NOT NULL
+        DEFAULT 0,
 
       locked_balance NUMERIC(30,8)
-        NOT NULL DEFAULT 0,
+        NOT NULL
+        DEFAULT 0,
 
       wallet_address TEXT,
 
@@ -778,105 +983,80 @@ async function initDb() {
       referred_by BIGINT,
 
       referral_qualified BOOLEAN
-        NOT NULL DEFAULT FALSE,
+        NOT NULL
+        DEFAULT FALSE,
 
       created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW(),
+        NOT NULL
+        DEFAULT NOW(),
 
       updated_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW()
+        NOT NULL
+        DEFAULT NOW()
     );
   `);
 
 
+  /* -------------------------------------------------------
+     MIGRATE OLD USERS TABLE SAFELY
+     ------------------------------------------------------- */
+
   await pool.query(`
     ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS username TEXT
+      NOT NULL
+      DEFAULT '';
 
-      ADD COLUMN IF NOT EXISTS
-        username TEXT
-        NOT NULL DEFAULT '',
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS first_name TEXT
+      NOT NULL
+      DEFAULT 'User';
 
-      ADD COLUMN IF NOT EXISTS
-        first_name TEXT
-        NOT NULL DEFAULT 'User',
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS photo_url TEXT;
 
-      ADD COLUMN IF NOT EXISTS
-        photo_url TEXT,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS balance NUMERIC(30,8)
+      NOT NULL
+      DEFAULT 0;
 
-      ADD COLUMN IF NOT EXISTS
-        balance NUMERIC(30,8)
-        NOT NULL DEFAULT 0,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS locked_balance NUMERIC(30,8)
+      NOT NULL
+      DEFAULT 0;
 
-      ADD COLUMN IF NOT EXISTS
-        locked_balance NUMERIC(30,8)
-        NOT NULL DEFAULT 0,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS wallet_address TEXT;
 
-      ADD COLUMN IF NOT EXISTS
-        wallet_address TEXT,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS wallet_connected_at TIMESTAMPTZ;
 
-      ADD COLUMN IF NOT EXISTS
-        wallet_connected_at TIMESTAMPTZ,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS farm_started_at TIMESTAMPTZ;
 
-      ADD COLUMN IF NOT EXISTS
-        farm_started_at TIMESTAMPTZ,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS farm_rate_daily NUMERIC(30,8);
 
-      ADD COLUMN IF NOT EXISTS
-        farm_rate_daily NUMERIC(30,8),
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS daily_bonus_date DATE;
 
-      ADD COLUMN IF NOT EXISTS
-        daily_bonus_date DATE,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS referred_by BIGINT;
 
-      ADD COLUMN IF NOT EXISTS
-        referred_by BIGINT,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS referral_qualified BOOLEAN
+      NOT NULL
+      DEFAULT FALSE;
 
-      ADD COLUMN IF NOT EXISTS
-        referral_qualified BOOLEAN
-        NOT NULL DEFAULT FALSE,
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ
+      NOT NULL
+      DEFAULT NOW();
 
-      ADD COLUMN IF NOT EXISTS
-        created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW(),
-
-      ADD COLUMN IF NOT EXISTS
-        updated_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW();
-  `);
-
-
-  await pool.query(`
-    DO $$
-
-    BEGIN
-
-      IF NOT EXISTS (
-
-        SELECT 1
-
-        FROM pg_constraint
-
-        WHERE conname =
-        'users_referred_by_fkey'
-
-      ) THEN
-
-        ALTER TABLE users
-
-        ADD CONSTRAINT
-        users_referred_by_fkey
-
-        FOREIGN KEY (
-          referred_by
-        )
-
-        REFERENCES users(
-          telegram_id
-        );
-
-      END IF;
-
-    END
-
-    $$;
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ
+      NOT NULL
+      DEFAULT NOW();
   `);
 
 
@@ -885,18 +1065,13 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS transactions (
-
+    CREATE TABLE IF NOT EXISTS transactions(
       id BIGSERIAL PRIMARY KEY,
 
-      telegram_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+      telegram_id BIGINT,
 
-      type TEXT NOT NULL,
+      type TEXT
+        NOT NULL,
 
       amount NUMERIC(30,8)
         NOT NULL,
@@ -916,25 +1091,26 @@ async function initDb() {
 
   await pool.query(`
     ALTER TABLE transactions
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT;
 
-      ADD COLUMN IF NOT EXISTS
-        type TEXT,
+    ALTER TABLE transactions
+      ADD COLUMN IF NOT EXISTS type TEXT;
 
-      ADD COLUMN IF NOT EXISTS
-        amount NUMERIC(30,8),
+    ALTER TABLE transactions
+      ADD COLUMN IF NOT EXISTS amount NUMERIC(30,8);
 
-      ADD COLUMN IF NOT EXISTS
-        reference TEXT,
+    ALTER TABLE transactions
+      ADD COLUMN IF NOT EXISTS reference TEXT;
 
-      ADD COLUMN IF NOT EXISTS
-        metadata JSONB
-        NOT NULL
-        DEFAULT '{}'::jsonb,
+    ALTER TABLE transactions
+      ADD COLUMN IF NOT EXISTS metadata JSONB
+      NOT NULL
+      DEFAULT '{}'::jsonb;
 
-      ADD COLUMN IF NOT EXISTS
-        created_at TIMESTAMPTZ
-        NOT NULL
-        DEFAULT NOW();
+    ALTER TABLE transactions
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ
+      NOT NULL
+      DEFAULT NOW();
   `);
 
 
@@ -943,20 +1119,17 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS daily_task_completions (
-
+    CREATE TABLE IF NOT EXISTS daily_task_completions(
       id BIGSERIAL PRIMARY KEY,
 
       telegram_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
-      task_key TEXT NOT NULL,
+      task_key TEXT
+        NOT NULL,
 
-      day DATE NOT NULL,
+      day DATE
+        NOT NULL,
 
       reward NUMERIC(30,8)
         NOT NULL,
@@ -979,16 +1152,11 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS ad_sessions (
-
+    CREATE TABLE IF NOT EXISTS ad_sessions(
       id UUID PRIMARY KEY,
 
       telegram_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
       day DATE,
 
@@ -1015,59 +1183,31 @@ async function initDb() {
 
   await pool.query(`
     ALTER TABLE ad_sessions
-
-      ADD COLUMN IF NOT EXISTS
-        day DATE,
-
-      ADD COLUMN IF NOT EXISTS
-        status TEXT
-        NOT NULL DEFAULT 'started',
-
-      ADD COLUMN IF NOT EXISTS
-        started_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW(),
-
-      ADD COLUMN IF NOT EXISTS
-        completed_at TIMESTAMPTZ,
-
-      ADD COLUMN IF NOT EXISTS
-        claimed_at TIMESTAMPTZ,
-
-      ADD COLUMN IF NOT EXISTS
-        provider_ref TEXT,
-
-      ADD COLUMN IF NOT EXISTS
-        metadata JSONB
-        NOT NULL
-        DEFAULT '{}'::jsonb;
+      ADD COLUMN IF NOT EXISTS day DATE;
   `);
 
 
   await pool.query(`
     UPDATE ad_sessions
-
     SET day =
       COALESCE(
         started_at::date,
         CURRENT_DATE
       )
-
     WHERE day IS NULL;
   `);
 
 
   await pool.query(`
     ALTER TABLE ad_sessions
-
-    ALTER COLUMN day
-    SET NOT NULL;
+      ALTER COLUMN day
+      SET NOT NULL;
   `);
 
 
   await pool.query(`
     CREATE INDEX IF NOT EXISTS
-      idx_ads_user_day
-
+    idx_ads_user_day
     ON ad_sessions(
       telegram_id,
       day
@@ -1080,14 +1220,9 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS referral_milestones (
-
+    CREATE TABLE IF NOT EXISTS referral_milestones(
       telegram_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
       milestone INTEGER
         NOT NULL,
@@ -1112,22 +1247,20 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS campaigns (
-
+    CREATE TABLE IF NOT EXISTS campaigns(
       id BIGSERIAL PRIMARY KEY,
 
       owner_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
-      type TEXT NOT NULL,
+      type TEXT
+        NOT NULL,
 
-      title TEXT NOT NULL,
+      title TEXT
+        NOT NULL,
 
-      target_url TEXT NOT NULL,
+      target_url TEXT
+        NOT NULL,
 
       description TEXT
         NOT NULL
@@ -1188,21 +1321,12 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS campaign_completions (
-
+    CREATE TABLE IF NOT EXISTS campaign_completions(
       campaign_id BIGINT
-        NOT NULL
-        REFERENCES campaigns(
-          id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
       telegram_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
       rewarded NUMERIC(30,8)
         NOT NULL
@@ -1225,16 +1349,11 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS withdrawals (
-
+    CREATE TABLE IF NOT EXISTS withdrawals(
       id UUID PRIMARY KEY,
 
       telegram_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
       amount NUMERIC(30,8)
         NOT NULL,
@@ -1282,17 +1401,12 @@ async function initDb() {
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS device_accounts (
-
+    CREATE TABLE IF NOT EXISTS device_accounts(
       device_hash TEXT
         NOT NULL,
 
       telegram_id BIGINT
-        NOT NULL
-        REFERENCES users(
-          telegram_id
-        )
-        ON DELETE CASCADE,
+        NOT NULL,
 
       first_seen TIMESTAMPTZ
         NOT NULL
@@ -1310,36 +1424,18 @@ async function initDb() {
   `);
 
 
-  await pool.query(`
-    ALTER TABLE device_accounts
-
-      ADD COLUMN IF NOT EXISTS
-        device_hash TEXT,
-
-      ADD COLUMN IF NOT EXISTS
-        first_seen TIMESTAMPTZ
-        NOT NULL
-        DEFAULT NOW(),
-
-      ADD COLUMN IF NOT EXISTS
-        last_seen TIMESTAMPTZ
-        NOT NULL
-        DEFAULT NOW();
-  `);
-
-
   /* -------------------------------------------------------
      SECURITY LOGS
      ------------------------------------------------------- */
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS security_logs (
-
+    CREATE TABLE IF NOT EXISTS security_logs(
       id BIGSERIAL PRIMARY KEY,
 
       telegram_id BIGINT,
 
-      action TEXT NOT NULL,
+      action TEXT
+        NOT NULL,
 
       severity TEXT
         NOT NULL
@@ -1362,118 +1458,32 @@ async function initDb() {
   `);
 
 
-  await pool.query(`
-    ALTER TABLE security_logs
-
-      ADD COLUMN IF NOT EXISTS
-        telegram_id BIGINT,
-
-      ADD COLUMN IF NOT EXISTS
-        action TEXT,
-
-      ADD COLUMN IF NOT EXISTS
-        severity TEXT
-        NOT NULL
-        DEFAULT 'info',
-
-      ADD COLUMN IF NOT EXISTS
-        ip_hash TEXT,
-
-      ADD COLUMN IF NOT EXISTS
-        device_hash TEXT,
-
-      ADD COLUMN IF NOT EXISTS
-        user_agent_hash TEXT,
-
-      ADD COLUMN IF NOT EXISTS
-        metadata JSONB
-        NOT NULL
-        DEFAULT '{}'::jsonb,
-
-      ADD COLUMN IF NOT EXISTS
-        created_at TIMESTAMPTZ
-        NOT NULL
-        DEFAULT NOW();
-  `);
-
-
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS
-      idx_security_logs_ip_hash
-
-    ON security_logs(
-      ip_hash
-    );
-  `);
-
-
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS
-      idx_security_logs_created_at
-
-    ON security_logs(
-      created_at
-    );
-  `);
-
-
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS
-      idx_security_logs_user
-
-    ON security_logs(
-      telegram_id
-    );
-  `);
-
-
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS
-      idx_users_referred_by
-
-    ON users(
-      referred_by
-    );
-  `);
-
-
   console.log(
     'MAI Network database schema ready'
   );
 }
-
-
 /* =========================================================
    TELEGRAM INIT DATA
    ========================================================= */
 
-function parseInitData(
-  initData
-) {
-
+function parseInitData(initData) {
   if (
     !initData ||
-    typeof initData !==
-      'string' ||
-    initData.length >
-      10000
+    typeof initData !== 'string' ||
+    initData.length > 10000
   ) {
-
     throw new Error(
       'Invalid Telegram initData'
     );
   }
-
 
   const params =
     new URLSearchParams(
       initData
     );
 
-  const received =
-    params.get(
-      'hash'
-    );
+  const receivedHash =
+    params.get('hash');
 
   const authDate =
     Number(
@@ -1482,19 +1492,16 @@ function parseInitData(
       )
     );
 
-
   if (
-    !received ||
+    !receivedHash ||
     !Number.isFinite(
       authDate
     )
   ) {
-
     throw new Error(
       'Telegram authorization missing'
     );
   }
-
 
   const age =
     Math.floor(
@@ -1503,41 +1510,31 @@ function parseInitData(
     ) -
     authDate;
 
-
   if (
     age < -60 ||
     age > 86400
   ) {
-
     throw new Error(
       'Telegram authorization expired'
     );
   }
 
-
   const pairs = [];
 
-
   for (
-    const [
-      key,
-      value
-    ] of params.entries()
+    const [key, value]
+    of params.entries()
   ) {
-
     if (
       key !== 'hash'
     ) {
-
       pairs.push(
         `${key}=${value}`
       );
     }
   }
 
-
   pairs.sort();
-
 
   const secret =
     crypto
@@ -1550,99 +1547,84 @@ function parseInitData(
       )
       .digest();
 
-
-  const calc =
+  const calculated =
     crypto
       .createHmac(
         'sha256',
         secret
       )
       .update(
-        pairs.join(
-          '\n'
-        )
+        pairs.join('\n')
       )
-      .digest(
-        'hex'
-      );
-
+      .digest('hex');
 
   const a =
     Buffer.from(
-      calc,
+      calculated,
       'hex'
     );
 
   const b =
     Buffer.from(
-      received,
+      receivedHash,
       'hex'
     );
 
-
   if (
-    a.length !==
-      b.length ||
-    !crypto
-      .timingSafeEqual(
-        a,
-        b
-      )
+    a.length !== b.length ||
+    !crypto.timingSafeEqual(
+      a,
+      b
+    )
   ) {
-
     throw new Error(
       'Telegram signature verification failed'
     );
   }
 
-
-  const user =
+  const telegramUser =
     JSON.parse(
       params.get(
         'user'
-      ) ||
-      '{}'
+      ) || '{}'
     );
 
-
-  if (!user.id) {
-
+  if (
+    !telegramUser.id
+  ) {
     throw new Error(
       'Telegram user missing'
     );
   }
 
-
   return {
-
     id:
       String(
-        user.id
+        telegramUser.id
       ),
 
     username:
-      user.username ||
+      telegramUser.username ||
       '',
 
     firstName:
-      user.first_name ||
+      telegramUser.first_name ||
       'User',
 
     photoUrl:
-      user.photo_url ||
+      telegramUser.photo_url ||
       null,
 
     startParam:
       params.get(
         'start_param'
-      ) ||
-      ''
+      ) || ''
   };
 }
 
 
 /* =========================================================
-   SECURITY LOGGING
+   SECURITY LOG
    ========================================================= */
 
 async function logSecurity(
@@ -1651,11 +1633,8 @@ async function logSecurity(
   severity = 'info',
   metadata = {}
 ) {
-
   try {
-
     await pool.query(
-
       `
       INSERT INTO security_logs(
         telegram_id,
@@ -1666,22 +1645,13 @@ async function logSecurity(
         user_agent_hash,
         metadata
       )
-
       VALUES(
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7
+        $1,$2,$3,$4,$5,$6,$7
       )
       `,
-
       [
-
         req.auth?.id ||
-        null,
+          null,
 
         action,
 
@@ -1695,7 +1665,7 @@ async function logSecurity(
         ),
 
         req.deviceHash ||
-        null,
+          null,
 
         hash(
           req.get(
@@ -1710,7 +1680,14 @@ async function logSecurity(
       ]
     );
 
-  } catch {}
+  } catch (
+    error
+  ) {
+    console.error(
+      'Security log failed:',
+      error.message
+    );
+  }
 }
 
 
@@ -1723,23 +1700,22 @@ async function authenticate(
   res,
   next
 ) {
-
   try {
-
     let auth;
 
-
-    const init =
+    const initData =
       req.get(
         'X-Telegram-Init-Data'
       ) ||
       req.body?.initData;
 
 
-    if (init) {
-
-      if (!BOT_TOKEN) {
-
+    if (
+      initData
+    ) {
+      if (
+        !BOT_TOKEN
+      ) {
         throw new Error(
           'BOT_TOKEN is not configured'
         );
@@ -1747,7 +1723,7 @@ async function authenticate(
 
       auth =
         parseInitData(
-          init
+          initData
         );
 
     } else if (
@@ -1756,7 +1732,6 @@ async function authenticate(
         'X-Dev-User'
       )
     ) {
-
       const id =
         String(
           req.get(
@@ -1764,23 +1739,18 @@ async function authenticate(
           )
         );
 
-
       if (
         !/^\d+$/.test(
           id
         )
       ) {
-
         throw new Error(
           'Bad dev user'
         );
       }
 
-
       auth = {
-
         id,
-
         username:
           'dev_user',
 
@@ -1795,7 +1765,6 @@ async function authenticate(
       };
 
     } else {
-
       throw new Error(
         'Open MAI Network inside Telegram'
       );
@@ -1809,24 +1778,20 @@ async function authenticate(
     const rawDevice =
       req.get(
         'X-MAI-Device-ID'
-      ) ||
-      '';
-
+      ) || '';
 
     req.deviceHash =
       rawDevice
-
         ? hash(
             rawDevice
           ).slice(
             0,
             48
           )
-
         : null;
 
 
-    const refMatch =
+    const referralMatch =
       String(
         auth.startParam ||
         ''
@@ -1836,17 +1801,14 @@ async function authenticate(
 
 
     const referredBy =
-      refMatch &&
-      refMatch[1] !==
+      referralMatch &&
+      referralMatch[1] !==
         auth.id
-
-        ? refMatch[1]
-
+        ? referralMatch[1]
         : null;
 
 
     await pool.query(
-
       `
       INSERT INTO users(
         telegram_id,
@@ -1856,20 +1818,13 @@ async function authenticate(
         balance,
         referred_by
       )
-
       VALUES(
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6
+        $1,$2,$3,$4,$5,$6
       )
 
       ON CONFLICT(
         telegram_id
       )
-
       DO UPDATE SET
 
         username =
@@ -1887,7 +1842,6 @@ async function authenticate(
         updated_at =
           NOW()
       `,
-
       [
         auth.id,
         auth.username,
@@ -1902,31 +1856,25 @@ async function authenticate(
     if (
       req.deviceHash
     ) {
-
       await pool.query(
-
         `
         INSERT INTO device_accounts(
           device_hash,
           telegram_id
         )
-
         VALUES(
-          $1,
-          $2
+          $1,$2
         )
 
         ON CONFLICT(
           device_hash,
           telegram_id
         )
-
         DO UPDATE SET
 
           last_seen =
             NOW()
         `,
-
         [
           req.deviceHash,
           auth.id
@@ -1937,17 +1885,17 @@ async function authenticate(
 
     next();
 
-  } catch (e) {
-
-    res
+  } catch (
+    error
+  ) {
+    return res
       .status(401)
       .json({
-
         success:
           false,
 
         message:
-          e.message
+          error.message
       });
   }
 }
@@ -1960,29 +1908,20 @@ async function authenticate(
 async function riskFor(
   req
 ) {
-
-  const flags =
-    [];
+  const flags = [];
 
 
   if (
     req.deviceHash
   ) {
-
-    const q =
+    const result =
       await pool.query(
-
         `
         SELECT
-          COUNT(*)::int c
-
-        FROM
-          device_accounts
-
-        WHERE
-          device_hash=$1
+          COUNT(*)::int AS c
+        FROM device_accounts
+        WHERE device_hash=$1
         `,
-
         [
           req.deviceHash
         ]
@@ -1990,10 +1929,9 @@ async function riskFor(
 
 
     if (
-      q.rows[0].c >
+      result.rows[0].c >
       cfg.maxAccountsDevice
     ) {
-
       flags.push(
         'multi_account_device'
       );
@@ -2010,29 +1948,23 @@ async function riskFor(
     );
 
 
-  const q =
+  const ipResult =
     await pool.query(
-
       `
       SELECT
-
         COUNT(
-          DISTINCT
-          telegram_id
-        )::int c
+          DISTINCT telegram_id
+        )::int AS c
 
-      FROM
-        security_logs
+      FROM security_logs
 
       WHERE
         ip_hash=$1
 
-      AND
-        created_at >=
-        NOW() -
-        INTERVAL '1 day'
+        AND created_at >=
+          NOW() -
+          INTERVAL '1 day'
       `,
-
       [
         ipHash
       ]
@@ -2040,10 +1972,9 @@ async function riskFor(
 
 
   if (
-    q.rows[0].c >
+    ipResult.rows[0].c >
     cfg.maxAccountsIpDay
   ) {
-
     flags.push(
       'many_accounts_ip'
     );
@@ -2055,19 +1986,25 @@ async function riskFor(
 
 
 /* =========================================================
-   TELEGRAM API
+   TELEGRAM BOT API
    ========================================================= */
 
 async function telegram(
   method,
   body
 ) {
+  if (
+    !BOT_TOKEN
+  ) {
+    throw new Error(
+      'BOT_TOKEN is missing'
+    );
+  }
+
 
   const response =
     await fetch(
-
       `https://api.telegram.org/bot${BOT_TOKEN}/${method}`,
-
       {
         method:
           'POST',
@@ -2089,8 +2026,9 @@ async function telegram(
     await response.json();
 
 
-  if (!data.ok) {
-
+  if (
+    !data.ok
+  ) {
     throw new Error(
       data.description ||
       'Telegram API error'
@@ -2110,24 +2048,19 @@ async function qualifyReferral(
   client,
   userId
 ) {
-
-  const q =
+  const result =
     await client.query(
-
       `
       SELECT
         referred_by,
         referral_qualified
 
-      FROM
-        users
+      FROM users
 
-      WHERE
-        telegram_id=$1
+      WHERE telegram_id=$1
 
       FOR UPDATE
       `,
-
       [
         userId
       ]
@@ -2135,7 +2068,7 @@ async function qualifyReferral(
 
 
   const user =
-    q.rows[0];
+    result.rows[0];
 
 
   if (
@@ -2143,24 +2076,21 @@ async function qualifyReferral(
     !user.referred_by ||
     user.referral_qualified
   ) {
-
     return;
   }
 
 
   await client.query(
-
     `
     UPDATE users
 
     SET
       referral_qualified=TRUE,
-      balance=balance+$2
+      balance=balance+$2,
+      updated_at=NOW()
 
-    WHERE
-      telegram_id=$1
+    WHERE telegram_id=$1
     `,
-
     [
       userId,
       cfg.referredReward
@@ -2169,17 +2099,15 @@ async function qualifyReferral(
 
 
   await client.query(
-
     `
     UPDATE users
 
     SET
-      balance=balance+$2
+      balance=balance+$2,
+      updated_at=NOW()
 
-    WHERE
-      telegram_id=$1
+    WHERE telegram_id=$1
     `,
-
     [
       user.referred_by,
       cfg.referrerReward
@@ -2188,7 +2116,6 @@ async function qualifyReferral(
 
 
   await client.query(
-
     `
     INSERT INTO transactions(
       telegram_id,
@@ -2196,16 +2123,13 @@ async function qualifyReferral(
       amount,
       reference
     )
-
     VALUES
-
       (
         $1,
         'referral_welcome',
         $2,
         $3
       ),
-
       (
         $3,
         'referral_reward',
@@ -2213,7 +2137,6 @@ async function qualifyReferral(
         $1
       )
     `,
-
     [
       userId,
       cfg.referredReward,
@@ -2228,43 +2151,32 @@ async function qualifyReferral(
 
 /* =========================================================
    FARM STATE
+   Uses CURRENT total holding
    ========================================================= */
 
 function farmState(
-  row
+  row,
+  holding
 ) {
-
-  const balance =
+  const currentRate =
     safeNumber(
-      row.balance
-    );
-
-
-  const rate =
-    safeNumber(
-
-      row.farm_rate_daily ||
-
-      totalDailyFor(
-        balance
-      )
+      holding?.totalDaily ??
+      cfg.freeDaily
     );
 
 
   const started =
     row.farm_started_at
-
       ? new Date(
           row.farm_started_at
         ).getTime()
-
       : null;
 
 
-  if (!started) {
-
+  if (
+    !started
+  ) {
     return {
-
       active:
         false,
 
@@ -2278,10 +2190,10 @@ function farmState(
         0,
 
       rateDaily:
-        rate,
+        currentRate,
 
       rateSecond:
-        rate /
+        currentRate /
         86400
     };
   }
@@ -2289,7 +2201,6 @@ function farmState(
 
   const elapsed =
     Math.max(
-
       0,
 
       (
@@ -2302,7 +2213,6 @@ function farmState(
 
   const progress =
     Math.min(
-
       1,
 
       elapsed /
@@ -2311,7 +2221,6 @@ function farmState(
 
 
   return {
-
     active:
       true,
 
@@ -2321,7 +2230,6 @@ function farmState(
 
     remaining:
       Math.max(
-
         0,
 
         Math.ceil(
@@ -2331,14 +2239,14 @@ function farmState(
       ),
 
     pending:
-      rate *
+      currentRate *
       progress,
 
     rateDaily:
-      rate,
+      currentRate,
 
     rateSecond:
-      rate /
+      currentRate /
       86400,
 
     startedAt:
@@ -2349,57 +2257,67 @@ function farmState(
 
 /* =========================================================
    BUILD USER
+   IMPORTANT:
+   in-game + wallet = total holding
    ========================================================= */
 
 async function buildUser(
   userId
 ) {
+  const userResult =
+    await pool.query(
+      `
+      SELECT *
+      FROM users
+      WHERE telegram_id=$1
+      `,
+      [
+        userId
+      ]
+    );
+
 
   const user =
-    (
-      await pool.query(
+    userResult.rows[0];
 
-        `
-        SELECT *
 
-        FROM users
+  if (
+    !user
+  ) {
+    throw new Error(
+      'User not found'
+    );
+  }
 
-        WHERE
-          telegram_id=$1
-        `,
 
-        [
-          userId
-        ]
-      )
-    ).rows[0];
+  const holding =
+    await getUserHoldingSnapshot(
+      user
+    );
 
 
   const referrals =
     (
       await pool.query(
-
         `
         SELECT
 
           COUNT(*)
           FILTER(
-            WHERE
-            referral_qualified
-          )::int successful,
+            WHERE referral_qualified
+          )::int
+          AS successful,
 
           COUNT(*)
           FILTER(
-            WHERE
-            NOT referral_qualified
-          )::int pending
+            WHERE NOT referral_qualified
+          )::int
+          AS pending
 
         FROM users
 
-        WHERE
-          referred_by=$1
+        WHERE referred_by=$1
         `,
-
         [
           userId
         ]
@@ -2407,26 +2325,14 @@ async function buildUser(
     ).rows[0];
 
 
-  const balance =
-    safeNumber(
-      user.balance
-    );
-
-
-  const level =
-    levelFor(
-      balance
-    );
-
-
-  const fs =
+  const farm =
     farmState(
-      user
+      user,
+      holding
     );
 
 
   return {
-
     telegramId:
       String(
         user.telegram_id
@@ -2441,47 +2347,82 @@ async function buildUser(
     photoUrl:
       user.photo_url,
 
-    balance,
+
+    /* ---------------------------------------------
+       IN-GAME BALANCE ONLY
+       --------------------------------------------- */
+
+    balance:
+      safeNumber(
+        user.balance
+      ),
+
 
     lockedBalance:
       safeNumber(
         user.locked_balance
       ),
 
-    level,
+
+    /* ---------------------------------------------
+       WALLET HOLDING
+       --------------------------------------------- */
+
+    walletHolding:
+      holding.wallet,
+
+
+    /* ---------------------------------------------
+       TOTAL = GAME + WALLET
+       --------------------------------------------- */
+
+    totalHolding:
+      holding.total,
+
+
+    /* ---------------------------------------------
+       DYNAMIC LEVEL
+       --------------------------------------------- */
+
+    level:
+      holding.level,
+
 
     levelMiningSpeed:
-      levelSpeed(
-        level
-      ),
+      holding.levelSpeed,
+
 
     miningSpeed:
-      totalDailyFor(
-        balance
-      ),
+      holding.totalDaily,
+
 
     freeMiningSpeed:
       cfg.freeDaily,
 
+
     maxLevel:
       cfg.maxLevel,
+
 
     holdingStep:
       cfg.holdingStep,
 
+
     walletAddress:
       user.wallet_address,
 
+
     walletConnectedAt:
       user.wallet_connected_at,
+
 
     referralLink:
       referralLink(
         user.telegram_id
       ),
 
-    referrals: {
 
+    referrals: {
       successful:
         referrals.successful ||
         0,
@@ -2491,8 +2432,9 @@ async function buildUser(
         0
     },
 
-    farm:
-      fs,
+
+    farm,
+
 
     dailyBonusClaimed:
       String(
@@ -2511,35 +2453,33 @@ async function buildUser(
 async function taskOverview(
   userId
 ) {
-
   const day =
     utcDay();
 
 
-  const done =
+  const doneRows =
     (
       await pool.query(
-
         `
         SELECT
           task_key
 
-        FROM
-          daily_task_completions
+        FROM daily_task_completions
 
         WHERE
           telegram_id=$1
-
-        AND
-          day=$2
+          AND day=$2
         `,
-
         [
           userId,
           day
         ]
       )
-    ).rows.map(
+    ).rows;
+
+
+  const done =
+    doneRows.map(
       row =>
         row.task_key
     );
@@ -2548,24 +2488,17 @@ async function taskOverview(
   const adCount =
     (
       await pool.query(
-
         `
         SELECT
-          COUNT(*)::int c
+          COUNT(*)::int AS c
 
-        FROM
-          ad_sessions
+        FROM ad_sessions
 
         WHERE
           telegram_id=$1
-
-        AND
-          day=$2
-
-        AND
-          claimed_at IS NOT NULL
+          AND day=$2
+          AND claimed_at IS NOT NULL
         `,
-
         [
           userId,
           day
@@ -2575,11 +2508,9 @@ async function taskOverview(
 
 
   return {
-
     day,
 
     ads: {
-
       limit:
         cfg.adDailyLimit,
 
@@ -2600,14 +2531,12 @@ async function taskOverview(
         cfg.adCooldown
     },
 
+
     joins:
       Object
-        .values(
-          tasks
-        )
+        .values(tasks)
         .map(
           task => ({
-
             ...task,
 
             reward:
@@ -2620,12 +2549,10 @@ async function taskOverview(
           })
         ),
 
+
     hasIncomplete:
-
       adCount <
-      cfg.adDailyLimit
-
-      ||
+        cfg.adDailyLimit ||
 
       Object
         .keys(tasks)
@@ -2640,249 +2567,16 @@ async function taskOverview(
 
 
 /* =========================================================
-   JETTON BALANCE HELPERS
-   ========================================================= */
-
-function rawJettonToDisplay(
-  raw,
-  decimals
-) {
-
-  const value =
-    BigInt(
-      String(
-        raw || '0'
-      )
-    );
-
-
-  const divisor =
-    10n **
-    BigInt(
-      decimals
-    );
-
-
-  const whole =
-    value /
-    divisor;
-
-
-  const fraction =
-    value %
-    divisor;
-
-
-  if (
-    decimals === 0
-  ) {
-
-    return whole
-      .toString();
-  }
-
-
-  const frac =
-    fraction
-      .toString()
-      .padStart(
-        decimals,
-        '0'
-      )
-      .replace(
-        /0+$/,
-        ''
-      );
-
-
-  return frac
-
-    ? `${whole}.${frac}`
-
-    : whole
-        .toString();
-}
-
-
-/* =========================================================
-   READ REAL MAI BALANCE FROM TON
-   ========================================================= */
-
-async function getMaiJettonBalance(
-  ownerAddress
-) {
-
-  const url =
-    new URL(
-
-      `${TONCENTER_API_BASE}` +
-      `/jetton/wallets`
-    );
-
-
-  url.searchParams.append(
-    'owner_address',
-    ownerAddress
-  );
-
-
-  url.searchParams.append(
-    'jetton_address',
-    MAI_JETTON_MASTER
-  );
-
-
-  url.searchParams.set(
-    'limit',
-    '10'
-  );
-
-
-  url.searchParams.set(
-    'exclude_zero_balance',
-    'false'
-  );
-
-
-  const headers = {
-    accept:
-      'application/json'
-  };
-
-
-  if (
-    TONCENTER_API_KEY
-  ) {
-
-    headers[
-      'X-API-Key'
-    ] =
-      TONCENTER_API_KEY;
-  }
-
-
-  const response =
-    await fetch(
-
-      url,
-
-      {
-        method:
-          'GET',
-
-        headers,
-
-        signal:
-          AbortSignal.timeout(
-            12000
-          )
-      }
-    );
-
-
-  const data =
-    await response
-      .json()
-      .catch(
-        () => ({})
-      );
-
-
-  if (
-    !response.ok
-  ) {
-
-    const message =
-
-      data?.error ||
-
-      data?.message ||
-
-      `TON Center request failed (${response.status})`;
-
-
-    throw new Error(
-      message
-    );
-  }
-
-
-  const wallets =
-    Array.isArray(
-      data.jetton_wallets
-    )
-
-      ? data
-          .jetton_wallets
-
-      : [];
-
-
-  const rawBalance =
-    wallets.reduce(
-
-      (
-        sum,
-        wallet
-      ) => {
-
-        try {
-
-          return (
-            sum +
-            BigInt(
-              String(
-                wallet.balance ||
-                '0'
-              )
-            )
-          );
-
-        } catch {
-
-          return sum;
-        }
-      },
-
-      0n
-    );
-
-
-  return {
-
-    rawBalance:
-      rawBalance
-        .toString(),
-
-    balance:
-      rawJettonToDisplay(
-        rawBalance,
-        MAI_JETTON_DECIMALS
-      ),
-
-    decimals:
-      MAI_JETTON_DECIMALS,
-
-    jettonMaster:
-      MAI_JETTON_MASTER
-  };
-}
-
-
-/* =========================================================
    HEALTH
    ========================================================= */
 
 app.get(
   '/health',
-
   (
     req,
     res
   ) => {
-
     res.json({
-
       ok:
         true,
 
@@ -2890,7 +2584,13 @@ app.get(
         'MAI Network API',
 
       version:
-        '3.2.0'
+        '4.0.0',
+
+      token:
+        MAI_JETTON_MASTER,
+
+      levelMode:
+        'in-game-plus-wallet'
     });
   }
 );
@@ -2910,9 +2610,7 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
       const risk =
         await riskFor(
           req
@@ -2922,18 +2620,14 @@ app.get(
       if (
         risk.length
       ) {
-
         await logSecurity(
-
           req,
 
           'bootstrap_risk',
 
           cfg.devicePolicy ===
-          'hard'
-
+            'hard'
             ? 'warn'
-
             : 'info',
 
           {
@@ -2944,7 +2638,6 @@ app.get(
 
 
       res.json({
-
         success:
           true,
 
@@ -2959,7 +2652,6 @@ app.get(
           ),
 
         security: {
-
           policy:
             cfg.devicePolicy,
 
@@ -2968,26 +2660,28 @@ app.get(
         }
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
 
 
 /* =========================================================
-   REAL MAI WALLET HOLDING
+   WALLET MAI BALANCE API
    ========================================================= */
 
 app.get(
-
   '/api/wallet/mai-balance',
 
   authenticate,
 
   rateLimit(
-    20,
+    30,
     60000
   ),
 
@@ -2996,70 +2690,84 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
-      const q =
+      const result =
         await pool.query(
-
           `
           SELECT
+            balance,
             wallet_address
 
-          FROM
-            users
+          FROM users
 
-          WHERE
-            telegram_id=$1
+          WHERE telegram_id=$1
           `,
-
           [
             req.auth.id
           ]
         );
 
 
-      const walletAddress =
-        q.rows[0]
-          ?.wallet_address;
+      const user =
+        result.rows[0];
 
 
       if (
-        !walletAddress
+        !user
       ) {
-
         return res
-          .status(409)
+          .status(404)
           .json({
-
             success:
               false,
 
             message:
-              'Connect a TON wallet first'
+              'User not found'
           });
       }
 
 
-      const result =
-        await getMaiJettonBalance(
-          walletAddress
+      const holding =
+        await getUserHoldingSnapshot(
+          user
         );
 
 
-      res.json({
-
+      return res.json({
         success:
           true,
 
-        walletAddress,
+        walletAddress:
+          user.wallet_address,
 
-        ...result
+        jettonMaster:
+          MAI_JETTON_MASTER,
+
+        inGameBalance:
+          holding.inGame,
+
+        walletBalance:
+          holding.wallet,
+
+        totalHolding:
+          holding.total,
+
+        level:
+          holding.level,
+
+        miningSpeed:
+          holding.totalDaily,
+
+        levelMiningSpeed:
+          holding.levelSpeed
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -3070,136 +2778,153 @@ app.get(
    ========================================================= */
 
 app.post(
-
   '/api/farm/start',
 
   authenticate,
+
+  rateLimit(
+    10,
+    60000
+  ),
 
   async (
     req,
     res,
     next
   ) => {
+    const client =
+      await pool.connect();
 
     try {
+      await client.query(
+        'BEGIN'
+      );
 
-      const client =
-        await pool.connect();
 
-
-      try {
-
+      const result =
         await client.query(
-          'BEGIN'
-        );
-
-
-        const q =
-          await client.query(
-
-            `
-            SELECT *
-
-            FROM users
-
-            WHERE
-              telegram_id=$1
-
-            FOR UPDATE
-            `,
-
-            [
-              req.auth.id
-            ]
-          );
-
-
-        const user =
-          q.rows[0];
-
-
-        if (
-          user
-            .farm_started_at
-        ) {
-
-          await client.query(
-            'ROLLBACK'
-          );
-
-
-          return res
-            .status(409)
-            .json({
-
-              success:
-                false,
-
-              message:
-                'Farming is already active'
-            });
-        }
-
-
-        const rate =
-          totalDailyFor(
-            user.balance
-          );
-
-
-        await client.query(
-
           `
-          UPDATE users
-
-          SET
-            farm_started_at=NOW(),
-
-            farm_rate_daily=$2
-
-          WHERE
-            telegram_id=$1
+          SELECT *
+          FROM users
+          WHERE telegram_id=$1
+          FOR UPDATE
           `,
-
           [
-            req.auth.id,
-            rate
+            req.auth.id
           ]
         );
 
 
-        await client.query(
-          'COMMIT'
-        );
+      const user =
+        result.rows[0];
 
 
-        res.json({
-
-          success:
-            true,
-
-          user:
-            await buildUser(
-              req.auth.id
-            )
-        });
-
-      } catch (e) {
-
+      if (
+        !user
+      ) {
         await client.query(
           'ROLLBACK'
         );
 
-        throw e;
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
 
-      } finally {
-
-        client.release();
+            message:
+              'User not found'
+          });
       }
 
-    } catch (e) {
 
-      next(e);
+      if (
+        user.farm_started_at
+      ) {
+        await client.query(
+          'ROLLBACK'
+        );
+
+        return res
+          .status(409)
+          .json({
+            success:
+              false,
+
+            message:
+              'Farming is already active'
+          });
+      }
+
+
+      const holding =
+        await getUserHoldingSnapshot(
+          user,
+          client
+        );
+
+
+      const rate =
+        holding.totalDaily;
+
+
+      await client.query(
+        `
+        UPDATE users
+
+        SET
+          farm_started_at=NOW(),
+          farm_rate_daily=$2,
+          updated_at=NOW()
+
+        WHERE telegram_id=$1
+        `,
+        [
+          req.auth.id,
+          rate
+        ]
+      );
+
+
+      await client.query(
+        'COMMIT'
+      );
+
+
+      res.json({
+        success:
+          true,
+
+        level:
+          holding.level,
+
+        totalHolding:
+          holding.total,
+
+        rateDaily:
+          rate,
+
+        user:
+          await buildUser(
+            req.auth.id
+          )
+      });
+
+    } catch (
+      error
+    ) {
+      try {
+        await client.query(
+          'ROLLBACK'
+        );
+      } catch {}
+
+      next(
+        error
+      );
+
+    } finally {
+      client.release();
     }
   }
 );
@@ -3207,10 +2932,10 @@ app.post(
 
 /* =========================================================
    FARM CLAIM
+   Dynamic current level at claim time
    ========================================================= */
 
 app.post(
-
   '/api/farm/claim',
 
   authenticate,
@@ -3225,185 +2950,244 @@ app.post(
     res,
     next
   ) => {
+    const client =
+      await pool.connect();
 
     try {
+      await client.query(
+        'BEGIN'
+      );
 
-      const client =
-        await pool.connect();
 
-
-      try {
-
+      const result =
         await client.query(
-          'BEGIN'
-        );
-
-
-        const q =
-          await client.query(
-
-            `
-            SELECT *
-
-            FROM users
-
-            WHERE
-              telegram_id=$1
-
-            FOR UPDATE
-            `,
-
-            [
-              req.auth.id
-            ]
-          );
-
-
-        const user =
-          q.rows[0];
-
-
-        const state =
-          farmState(
-            user
-          );
-
-
-        if (
-          !state.active ||
-          !state.ready
-        ) {
-
-          await client.query(
-            'ROLLBACK'
-          );
-
-
-          return res
-            .status(409)
-            .json({
-
-              success:
-                false,
-
-              message:
-                `Farming not ready. ${state.remaining}s remaining`
-            });
-        }
-
-
-        const reward =
-          safeNumber(
-            user
-              .farm_rate_daily
-          );
-
-
-        const after =
-          safeNumber(
-            user.balance
-          ) +
-          reward;
-
-
-        const nextRate =
-          totalDailyFor(
-            after
-          );
-
-
-        await client.query(
-
           `
-          UPDATE users
-
-          SET
-            balance=balance+$2,
-
-            farm_started_at=NOW(),
-
-            farm_rate_daily=$3,
-
-            updated_at=NOW()
-
-          WHERE
-            telegram_id=$1
+          SELECT *
+          FROM users
+          WHERE telegram_id=$1
+          FOR UPDATE
           `,
-
           [
-            req.auth.id,
-            reward,
-            nextRate
+            req.auth.id
           ]
         );
 
 
-        await client.query(
-
-          `
-          INSERT INTO transactions(
-            telegram_id,
-            type,
-            amount,
-            reference
-          )
-
-          VALUES(
-            $1,
-            'farm_claim',
-            $2,
-            $3
-          )
-          `,
-
-          [
-            req.auth.id,
-            reward,
-            utcDay()
-          ]
-        );
+      const user =
+        result.rows[0];
 
 
-        await qualifyReferral(
-          client,
-          req.auth.id
-        );
-
-
-        await client.query(
-          'COMMIT'
-        );
-
-
-        res.json({
-
-          success:
-            true,
-
-          reward,
-
-          user:
-            await buildUser(
-              req.auth.id
-            )
-        });
-
-      } catch (e) {
-
+      if (
+        !user
+      ) {
         await client.query(
           'ROLLBACK'
         );
 
-        throw e;
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
 
-      } finally {
-
-        client.release();
+            message:
+              'User not found'
+          });
       }
 
-    } catch (e) {
 
-      next(e);
+      const holding =
+        await getUserHoldingSnapshot(
+          user,
+          client
+        );
+
+
+      const state =
+        farmState(
+          user,
+          holding
+        );
+
+
+      if (
+        !state.active ||
+        !state.ready
+      ) {
+        await client.query(
+          'ROLLBACK'
+        );
+
+        return res
+          .status(409)
+          .json({
+            success:
+              false,
+
+            message:
+              `Farming not ready. ${state.remaining}s remaining`
+          });
+      }
+
+
+      /*
+       * Reward is calculated from the CURRENT
+       * in-game + wallet holding.
+       *
+       * Example:
+       * total 5000 MAI => LVL 5
+       * sell 1000 => total 4000 => LVL 4
+       * claim uses LVL 4 rate.
+       */
+
+      const reward =
+        holding.totalDaily;
+
+
+      const afterGameBalance =
+        safeNumber(
+          user.balance
+        ) +
+        reward;
+
+
+      /*
+       * Reward becomes in-game MAI,
+       * so total holding may increase
+       * after claim.
+       */
+
+      let walletAfter =
+        holding.wallet;
+
+
+      const totalAfter =
+        afterGameBalance +
+        walletAfter;
+
+
+      const nextRate =
+        totalDailyFor(
+          totalAfter
+        );
+
+
+      await client.query(
+        `
+        UPDATE users
+
+        SET
+          balance =
+            balance + $2,
+
+          farm_started_at =
+            NOW(),
+
+          farm_rate_daily =
+            $3,
+
+          updated_at =
+            NOW()
+
+        WHERE telegram_id=$1
+        `,
+        [
+          req.auth.id,
+          reward,
+          nextRate
+        ]
+      );
+
+
+      await client.query(
+        `
+        INSERT INTO transactions(
+          telegram_id,
+          type,
+          amount,
+          reference,
+          metadata
+        )
+
+        VALUES(
+          $1,
+          'farm_claim',
+          $2,
+          $3,
+          $4
+        )
+        `,
+        [
+          req.auth.id,
+
+          reward,
+
+          utcDay(),
+
+          {
+            level:
+              holding.level,
+
+            inGame:
+              holding.inGame,
+
+            wallet:
+              holding.wallet,
+
+            total:
+              holding.total,
+
+            rateDaily:
+              holding.totalDaily
+          }
+        ]
+      );
+
+
+      await qualifyReferral(
+        client,
+        req.auth.id
+      );
+
+
+      await client.query(
+        'COMMIT'
+      );
+
+
+      res.json({
+        success:
+          true,
+
+        reward,
+
+        previousLevel:
+          holding.level,
+
+        previousTotalHolding:
+          holding.total,
+
+        user:
+          await buildUser(
+            req.auth.id
+          )
+      });
+
+    } catch (
+      error
+    ) {
+      try {
+        await client.query(
+          'ROLLBACK'
+        );
+      } catch {}
+
+      next(
+        error
+      );
+
+    } finally {
+      client.release();
     }
   }
 );
@@ -3414,7 +3198,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/api/daily-bonus',
 
   authenticate,
@@ -3429,102 +3212,49 @@ app.post(
     res,
     next
   ) => {
+    const client =
+      await pool.connect();
 
     try {
+      await client.query(
+        'BEGIN'
+      );
 
-      const client =
-        await pool.connect();
+
+      const day =
+        utcDay();
 
 
-      try {
-
+      const update =
         await client.query(
-          'BEGIN'
-        );
-
-
-        const day =
-          utcDay();
-
-
-        const q =
-          await client.query(
-
-            `
-            UPDATE users
-
-            SET
-              balance=balance+$2,
-
-              daily_bonus_date=$3,
-
-              updated_at=NOW()
-
-            WHERE
-              telegram_id=$1
-
-            AND
-              (
-                daily_bonus_date
-                IS NULL
-
-                OR
-
-                daily_bonus_date<>$3
-              )
-
-            RETURNING
-              telegram_id
-            `,
-
-            [
-              req.auth.id,
-              cfg.dailyBonus,
-              day
-            ]
-          );
-
-
-        if (
-          !q.rowCount
-        ) {
-
-          await client.query(
-            'ROLLBACK'
-          );
-
-
-          return res
-            .status(409)
-            .json({
-
-              success:
-                false,
-
-              message:
-                'Daily bonus already claimed today'
-            });
-        }
-
-
-        await client.query(
-
           `
-          INSERT INTO transactions(
-            telegram_id,
-            type,
-            amount,
-            reference
-          )
+          UPDATE users
 
-          VALUES(
-            $1,
-            'daily_bonus',
-            $2,
-            $3
-          )
+          SET
+            balance =
+              balance + $2,
+
+            daily_bonus_date =
+              $3,
+
+            updated_at =
+              NOW()
+
+          WHERE
+            telegram_id=$1
+
+            AND (
+              daily_bonus_date
+              IS NULL
+
+              OR
+              daily_bonus_date
+              <> $3
+            )
+
+          RETURNING
+            telegram_id
           `,
-
           [
             req.auth.id,
             cfg.dailyBonus,
@@ -3533,58 +3263,96 @@ app.post(
         );
 
 
-        await qualifyReferral(
-          client,
-          req.auth.id
-        );
-
-
-        await client.query(
-          'COMMIT'
-        );
-
-
-        res.json({
-
-          success:
-            true,
-
-          reward:
-            cfg.dailyBonus,
-
-          user:
-            await buildUser(
-              req.auth.id
-            )
-        });
-
-      } catch (e) {
-
+      if (
+        !update.rowCount
+      ) {
         await client.query(
           'ROLLBACK'
         );
 
-        throw e;
+        return res
+          .status(409)
+          .json({
+            success:
+              false,
 
-      } finally {
-
-        client.release();
+            message:
+              'Daily bonus already claimed today'
+          });
       }
 
-    } catch (e) {
 
-      next(e);
+      await client.query(
+        `
+        INSERT INTO transactions(
+          telegram_id,
+          type,
+          amount,
+          reference
+        )
+
+        VALUES(
+          $1,
+          'daily_bonus',
+          $2,
+          $3
+        )
+        `,
+        [
+          req.auth.id,
+          cfg.dailyBonus,
+          day
+        ]
+      );
+
+
+      await qualifyReferral(
+        client,
+        req.auth.id
+      );
+
+
+      await client.query(
+        'COMMIT'
+      );
+
+
+      res.json({
+        success:
+          true,
+
+        reward:
+          cfg.dailyBonus,
+
+        user:
+          await buildUser(
+            req.auth.id
+          )
+      });
+
+    } catch (
+      error
+    ) {
+      try {
+        await client.query(
+          'ROLLBACK'
+        );
+      } catch {}
+
+      next(
+        error
+      );
+
+    } finally {
+      client.release();
     }
   }
 );
-
-
 /* =========================================================
-   TASKS
+   TASKS GET
    ========================================================= */
 
 app.get(
-
   '/api/tasks',
 
   authenticate,
@@ -3594,11 +3362,8 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
       res.json({
-
         success:
           true,
 
@@ -3608,16 +3373,22 @@ app.get(
           )
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
 
 
-app.post(
+/* =========================================================
+   TASK VERIFY
+   ========================================================= */
 
+app.post(
   '/api/tasks/verify/:key',
 
   authenticate,
@@ -3632,21 +3403,19 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const task =
         tasks[
           req.params.key
         ];
 
 
-      if (!task) {
-
+      if (
+        !task
+      ) {
         return res
           .status(404)
           .json({
-
             success:
               false,
 
@@ -3658,11 +3427,8 @@ app.post(
 
       const member =
         await telegram(
-
           'getChatMember',
-
           {
-
             chat_id:
               task.chatId,
 
@@ -3673,34 +3439,27 @@ app.post(
 
 
       const ok =
-
         [
           'creator',
           'administrator',
           'member'
         ].includes(
           member.status
-        )
-
-        ||
+        ) ||
 
         (
           member.status ===
-            'restricted'
-
-          &&
-
-          member
-            .is_member
+            'restricted' &&
+          member.is_member
         );
 
 
-      if (!ok) {
-
+      if (
+        !ok
+      ) {
         return res
           .status(409)
           .json({
-
             success:
               false,
 
@@ -3715,7 +3474,6 @@ app.post(
 
 
       try {
-
         await client.query(
           'BEGIN'
         );
@@ -3727,7 +3485,6 @@ app.post(
 
         const inserted =
           await client.query(
-
             `
             INSERT INTO daily_task_completions(
               telegram_id,
@@ -3735,12 +3492,8 @@ app.post(
               day,
               reward
             )
-
             VALUES(
-              $1,
-              $2,
-              $3,
-              $4
+              $1,$2,$3,$4
             )
 
             ON CONFLICT
@@ -3748,7 +3501,6 @@ app.post(
 
             RETURNING id
             `,
-
             [
               req.auth.id,
               task.key,
@@ -3761,19 +3513,19 @@ app.post(
         if (
           inserted.rowCount
         ) {
-
           await client.query(
-
             `
             UPDATE users
 
             SET
-              balance=balance+$2
+              balance =
+                balance + $2,
 
-            WHERE
-              telegram_id=$1
+              updated_at =
+                NOW()
+
+            WHERE telegram_id=$1
             `,
-
             [
               req.auth.id,
               cfg.taskReward
@@ -3782,7 +3534,6 @@ app.post(
 
 
           await client.query(
-
             `
             INSERT INTO transactions(
               telegram_id,
@@ -3790,7 +3541,6 @@ app.post(
               amount,
               reference
             )
-
             VALUES(
               $1,
               'daily_task',
@@ -3798,7 +3548,6 @@ app.post(
               $3
             )
             `,
-
             [
               req.auth.id,
               cfg.taskReward,
@@ -3820,13 +3569,11 @@ app.post(
 
 
         res.json({
-
           success:
             true,
 
           rewarded:
-            !!inserted
-              .rowCount,
+            !!inserted.rowCount,
 
           tasks:
             await taskOverview(
@@ -3839,22 +3586,27 @@ app.post(
             )
         });
 
-      } catch (e) {
+      } catch (
+        error
+      ) {
+        try {
+          await client.query(
+            'ROLLBACK'
+          );
+        } catch {}
 
-        await client.query(
-          'ROLLBACK'
-        );
-
-        throw e;
+        throw error;
 
       } finally {
-
         client.release();
       }
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -3865,7 +3617,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/api/ads/start',
 
   authenticate,
@@ -3880,9 +3631,7 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const day =
         utcDay();
 
@@ -3890,25 +3639,20 @@ app.post(
       const used =
         (
           await pool.query(
-
             `
             SELECT
-              COUNT(*)::int c
+              COUNT(*)::int AS c
 
-            FROM
-              ad_sessions
+            FROM ad_sessions
 
             WHERE
               telegram_id=$1
 
-            AND
-              day=$2
+              AND day=$2
 
-            AND
-              claimed_at
+              AND claimed_at
               IS NOT NULL
             `,
-
             [
               req.auth.id,
               day
@@ -3921,11 +3665,9 @@ app.post(
         used >=
         cfg.adDailyLimit
       ) {
-
         return res
           .status(409)
           .json({
-
             success:
               false,
 
@@ -3938,16 +3680,14 @@ app.post(
       const last =
         (
           await pool.query(
-
             `
             SELECT
               COALESCE(
                 completed_at,
                 started_at
-              ) t
+              ) AS t
 
-            FROM
-              ad_sessions
+            FROM ad_sessions
 
             WHERE
               telegram_id=$1
@@ -3957,7 +3697,6 @@ app.post(
 
             LIMIT 1
             `,
-
             [
               req.auth.id
             ]
@@ -3965,12 +3704,11 @@ app.post(
         ).rows[0];
 
 
-      if (last) {
-
+      if (
+        last
+      ) {
         const wait =
-
           cfg.adCooldown -
-
           (
             Date.now() -
             new Date(
@@ -3983,11 +3721,9 @@ app.post(
         if (
           wait > 0
         ) {
-
           return res
             .status(429)
             .json({
-
               success:
                 false,
 
@@ -3995,35 +3731,27 @@ app.post(
                 `Please wait ${Math.ceil(wait)}s`,
 
               cooldown:
-                Math.ceil(
-                  wait
-                )
+                Math.ceil(wait)
             });
         }
       }
 
 
       const id =
-        crypto
-          .randomUUID();
+        crypto.randomUUID();
 
 
       await pool.query(
-
         `
         INSERT INTO ad_sessions(
           id,
           telegram_id,
           day
         )
-
         VALUES(
-          $1,
-          $2,
-          $3
+          $1,$2,$3
         )
         `,
-
         [
           id,
           req.auth.id,
@@ -4036,19 +3764,15 @@ app.post(
 
 
       if (
-        cfg
-          .adProviderMode ===
+        cfg.adProviderMode ===
         'external'
       ) {
-
         if (
           !cfg.adProviderUrl
         ) {
-
           return res
             .status(503)
             .json({
-
               success:
                 false,
 
@@ -4058,44 +3782,38 @@ app.post(
         }
 
 
-        const u =
+        const adUrl =
           new URL(
             cfg.adProviderUrl
           );
 
 
-        u.searchParams.set(
+        adUrl.searchParams.set(
           'session_id',
           id
         );
 
 
-        u.searchParams.set(
+        adUrl.searchParams.set(
           'user_id',
           req.auth.id
         );
 
 
         url =
-          u.toString();
+          adUrl.toString();
 
       } else if (
-        cfg
-          .adProviderMode ===
-          'demo'
-
-        &&
-
+        cfg.adProviderMode ===
+          'demo' &&
         ALLOW_DEV_AUTH
       ) {
-
         url =
           `${CLIENT_ORIGIN.split(',')[0]}/?demo_ad=${id}`;
       }
 
 
       res.json({
-
         success:
           true,
 
@@ -4105,9 +3823,12 @@ app.post(
         url
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -4118,7 +3839,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/webhooks/ads',
 
   async (
@@ -4126,14 +3846,11 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const signature =
         req.get(
           'x-ad-signature'
-        ) ||
-        '';
+        ) || '';
 
 
       const raw =
@@ -4148,33 +3865,23 @@ app.post(
             'sha256',
             cfg.adWebhookSecret
           )
-          .update(
-            raw
-          )
-          .digest(
-            'hex'
-          );
+          .update(raw)
+          .digest('hex');
 
 
       if (
         !cfg.adWebhookSecret ||
-
         signature.length !==
-        expected.length ||
-
-        !crypto
-          .timingSafeEqual(
-
-            Buffer.from(
-              signature
-            ),
-
-            Buffer.from(
-              expected
-            )
+          expected.length ||
+        !crypto.timingSafeEqual(
+          Buffer.from(
+            signature
+          ),
+          Buffer.from(
+            expected
           )
+        )
       ) {
-
         return res
           .status(401)
           .json({
@@ -4188,9 +3895,7 @@ app.post(
         req.body.status ===
         'completed'
       ) {
-
         await pool.query(
-
           `
           UPDATE ad_sessions
 
@@ -4204,15 +3909,12 @@ app.post(
           WHERE
             id=$1
 
-          AND
-            status='started'
+            AND status='started'
           `,
-
           [
             req.body.sessionId,
-            req.body
-              .providerRef ||
-            null
+            req.body.providerRef ||
+              null
           ]
         );
       }
@@ -4223,9 +3925,12 @@ app.post(
           true
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -4236,7 +3941,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/api/ads/demo-complete/:id',
 
   authenticate,
@@ -4246,20 +3950,14 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       if (
         !(
           cfg.adProviderMode ===
-            'demo'
-
-          &&
-
+            'demo' &&
           ALLOW_DEV_AUTH
         )
       ) {
-
         return res
           .status(404)
           .end();
@@ -4267,7 +3965,6 @@ app.post(
 
 
       await pool.query(
-
         `
         UPDATE ad_sessions
 
@@ -4279,10 +3976,8 @@ app.post(
         WHERE
           id=$1
 
-        AND
-          telegram_id=$2
+          AND telegram_id=$2
         `,
-
         [
           req.params.id,
           req.auth.id
@@ -4295,9 +3990,12 @@ app.post(
           true
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -4308,7 +4006,6 @@ app.post(
    ========================================================= */
 
 app.get(
-
   '/api/ads/status/:id',
 
   authenticate,
@@ -4318,27 +4015,21 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
-      const q =
+      const result =
         await pool.query(
-
           `
           SELECT
             status,
             claimed_at
 
-          FROM
-            ad_sessions
+          FROM ad_sessions
 
           WHERE
             id=$1
 
-          AND
-            telegram_id=$2
+            AND telegram_id=$2
           `,
-
           [
             req.params.id,
             req.auth.id
@@ -4347,9 +4038,8 @@ app.get(
 
 
       if (
-        !q.rowCount
+        !result.rowCount
       ) {
-
         return res
           .status(404)
           .json({
@@ -4360,16 +4050,18 @@ app.get(
 
 
       res.json({
-
         success:
           true,
 
-        ...q.rows[0]
+        ...result.rows[0]
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -4380,7 +4072,6 @@ app.get(
    ========================================================= */
 
 app.post(
-
   '/api/ads/claim/:id',
 
   authenticate,
@@ -4390,250 +4081,221 @@ app.post(
     res,
     next
   ) => {
+    const client =
+      await pool.connect();
 
     try {
+      await client.query(
+        'BEGIN'
+      );
 
-      const client =
-        await pool.connect();
 
-
-      try {
-
+      const result =
         await client.query(
-          'BEGIN'
-        );
-
-
-        const q =
-          await client.query(
-
-            `
-            SELECT *
-
-            FROM
-              ad_sessions
-
-            WHERE
-              id=$1
-
-            AND
-              telegram_id=$2
-
-            FOR UPDATE
-            `,
-
-            [
-              req.params.id,
-              req.auth.id
-            ]
-          );
-
-
-        const ad =
-          q.rows[0];
-
-
-        if (
-          !ad ||
-
-          ad.status !==
-            'completed' ||
-
-          ad.claimed_at
-        ) {
-
-          await client.query(
-            'ROLLBACK'
-          );
-
-
-          return res
-            .status(409)
-            .json({
-
-              success:
-                false,
-
-              message:
-                'Ad is not verified as completed'
-            });
-        }
-
-
-        const used =
-          (
-            await client.query(
-
-              `
-              SELECT
-                COUNT(*)::int c
-
-              FROM
-                ad_sessions
-
-              WHERE
-                telegram_id=$1
-
-              AND
-                day=$2
-
-              AND
-                claimed_at IS NOT NULL
-              `,
-
-              [
-                req.auth.id,
-                ad.day
-              ]
-            )
-          ).rows[0].c;
-
-
-        if (
-          used >=
-          cfg.adDailyLimit
-        ) {
-
-          await client.query(
-            'ROLLBACK'
-          );
-
-
-          return res
-            .status(409)
-            .json({
-
-              success:
-                false,
-
-              message:
-                'Daily ad limit reached'
-            });
-        }
-
-
-        await client.query(
-
           `
-          UPDATE ad_sessions
+          SELECT *
 
-          SET
-            claimed_at=NOW(),
-
-            status='claimed'
+          FROM ad_sessions
 
           WHERE
             id=$1
-          `,
 
+            AND telegram_id=$2
+
+          FOR UPDATE
+          `,
           [
-            ad.id
+            req.params.id,
+            req.auth.id
           ]
         );
 
 
-        await client.query(
-
-          `
-          UPDATE users
-
-          SET
-            balance=balance+$2
-
-          WHERE
-            telegram_id=$1
-          `,
-
-          [
-            req.auth.id,
-            cfg.adReward
-          ]
-        );
+      const ad =
+        result.rows[0];
 
 
-        await client.query(
-
-          `
-          INSERT INTO transactions(
-            telegram_id,
-            type,
-            amount,
-            reference
-          )
-
-          VALUES(
-            $1,
-            'ad_reward',
-            $2,
-            $3
-          )
-          `,
-
-          [
-            req.auth.id,
-            cfg.adReward,
-            ad.id
-          ]
-        );
-
-
-        await qualifyReferral(
-          client,
-          req.auth.id
-        );
-
-
-        await client.query(
-          'COMMIT'
-        );
-
-
-        res.json({
-
-          success:
-            true,
-
-          reward:
-            cfg.adReward,
-
-          tasks:
-            await taskOverview(
-              req.auth.id
-            ),
-
-          user:
-            await buildUser(
-              req.auth.id
-            )
-        });
-
-      } catch (e) {
-
+      if (
+        !ad ||
+        ad.status !==
+          'completed' ||
+        ad.claimed_at
+      ) {
         await client.query(
           'ROLLBACK'
         );
 
-        throw e;
+        return res
+          .status(409)
+          .json({
+            success:
+              false,
 
-      } finally {
-
-        client.release();
+            message:
+              'Ad is not verified as completed'
+          });
       }
 
-    } catch (e) {
 
-      next(e);
+      const used =
+        (
+          await client.query(
+            `
+            SELECT
+              COUNT(*)::int AS c
+
+            FROM ad_sessions
+
+            WHERE
+              telegram_id=$1
+
+              AND day=$2
+
+              AND claimed_at
+              IS NOT NULL
+            `,
+            [
+              req.auth.id,
+              ad.day
+            ]
+          )
+        ).rows[0].c;
+
+
+      if (
+        used >=
+        cfg.adDailyLimit
+      ) {
+        await client.query(
+          'ROLLBACK'
+        );
+
+        return res
+          .status(409)
+          .json({
+            success:
+              false,
+
+            message:
+              'Daily ad limit reached'
+          });
+      }
+
+
+      await client.query(
+        `
+        UPDATE ad_sessions
+
+        SET
+          claimed_at=NOW(),
+
+          status='claimed'
+
+        WHERE id=$1
+        `,
+        [
+          ad.id
+        ]
+      );
+
+
+      await client.query(
+        `
+        UPDATE users
+
+        SET
+          balance =
+            balance + $2,
+
+          updated_at =
+            NOW()
+
+        WHERE telegram_id=$1
+        `,
+        [
+          req.auth.id,
+          cfg.adReward
+        ]
+      );
+
+
+      await client.query(
+        `
+        INSERT INTO transactions(
+          telegram_id,
+          type,
+          amount,
+          reference
+        )
+        VALUES(
+          $1,
+          'ad_reward',
+          $2,
+          $3
+        )
+        `,
+        [
+          req.auth.id,
+          cfg.adReward,
+          ad.id
+        ]
+      );
+
+
+      await qualifyReferral(
+        client,
+        req.auth.id
+      );
+
+
+      await client.query(
+        'COMMIT'
+      );
+
+
+      res.json({
+        success:
+          true,
+
+        reward:
+          cfg.adReward,
+
+        tasks:
+          await taskOverview(
+            req.auth.id
+          ),
+
+        user:
+          await buildUser(
+            req.auth.id
+          )
+      });
+
+    } catch (
+      error
+    ) {
+      try {
+        await client.query(
+          'ROLLBACK'
+        );
+      } catch {}
+
+      next(
+        error
+      );
+
+    } finally {
+      client.release();
     }
   }
 );
 
 
 /* =========================================================
-   REFERRALS
+   REFERRALS GET
    ========================================================= */
 
 app.get(
-
   '/api/referrals',
 
   authenticate,
@@ -4643,29 +4305,19 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
-      const q =
+      const result =
         await pool.query(
-
           `
           SELECT
-
             telegram_id,
-
             first_name,
-
             username,
-
             photo_url,
-
             referral_qualified,
-
             created_at
 
-          FROM
-            users
+          FROM users
 
           WHERE
             referred_by=$1
@@ -4675,7 +4327,6 @@ app.get(
 
           LIMIT 100
           `,
-
           [
             req.auth.id
           ]
@@ -4683,28 +4334,24 @@ app.get(
 
 
       const success =
-        q.rows.filter(
+        result.rows.filter(
           row =>
-            row
-              .referral_qualified
+            row.referral_qualified
         ).length;
 
 
       const claimed =
         (
           await pool.query(
-
             `
             SELECT
               milestone
 
-            FROM
-              referral_milestones
+            FROM referral_milestones
 
             WHERE
               telegram_id=$1
             `,
-
             [
               req.auth.id
             ]
@@ -4718,48 +4365,42 @@ app.get(
       const milestones =
         milestoneConfig()
           .map(
-            milestone => ({
-
-              ...milestone,
+            item => ({
+              ...item,
 
               claimed:
                 claimed.includes(
-                  milestone.count
+                  item.count
                 ),
 
               unlocked:
                 success >=
-                milestone.count
+                item.count
             })
           );
 
 
       const earned =
         safeNumber(
-
           (
             await pool.query(
-
               `
               SELECT
                 COALESCE(
                   SUM(amount),
                   0
-                ) s
+                ) AS s
 
-              FROM
-                transactions
+              FROM transactions
 
               WHERE
                 telegram_id=$1
 
-              AND
-                type IN(
+                AND type IN(
                   'referral_reward',
                   'referral_milestone'
                 )
               `,
-
               [
                 req.auth.id
               ]
@@ -4769,7 +4410,6 @@ app.get(
 
 
       res.json({
-
         success:
           true,
 
@@ -4782,7 +4422,7 @@ app.get(
           success,
 
         pending:
-          q.rows.length -
+          result.rows.length -
           success,
 
         totalEarned:
@@ -4791,12 +4431,15 @@ app.get(
         milestones,
 
         items:
-          q.rows
+          result.rows
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -4807,7 +4450,6 @@ app.get(
    ========================================================= */
 
 app.post(
-
   '/api/referrals/milestones/:count',
 
   authenticate,
@@ -4817,9 +4459,7 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const count =
         Number(
           req.params.count
@@ -4835,12 +4475,12 @@ app.post(
           );
 
 
-      if (!conf) {
-
+      if (
+        !conf
+      ) {
         return res
           .status(404)
           .json({
-
             success:
               false,
 
@@ -4855,7 +4495,6 @@ app.post(
 
 
       try {
-
         await client.query(
           'BEGIN'
         );
@@ -4864,20 +4503,17 @@ app.post(
         const success =
           (
             await client.query(
-
               `
               SELECT
-                COUNT(*)::int c
+                COUNT(*)::int AS c
 
               FROM users
 
               WHERE
                 referred_by=$1
 
-              AND
-                referral_qualified=TRUE
+                AND referral_qualified=TRUE
               `,
-
               [
                 req.auth.id
               ]
@@ -4889,16 +4525,13 @@ app.post(
           success <
           count
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -4910,27 +4543,21 @@ app.post(
 
         const inserted =
           await client.query(
-
             `
             INSERT INTO referral_milestones(
               telegram_id,
               milestone,
               reward
             )
-
             VALUES(
-              $1,
-              $2,
-              $3
+              $1,$2,$3
             )
 
             ON CONFLICT
             DO NOTHING
 
-            RETURNING
-              milestone
+            RETURNING milestone
             `,
-
             [
               req.auth.id,
               count,
@@ -4942,16 +4569,13 @@ app.post(
         if (
           !inserted.rowCount
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -4962,17 +4586,18 @@ app.post(
 
 
         await client.query(
-
           `
           UPDATE users
 
           SET
-            balance=balance+$2
+            balance =
+              balance + $2,
 
-          WHERE
-            telegram_id=$1
+            updated_at =
+              NOW()
+
+          WHERE telegram_id=$1
           `,
-
           [
             req.auth.id,
             conf.reward
@@ -4981,7 +4606,6 @@ app.post(
 
 
         await client.query(
-
           `
           INSERT INTO transactions(
             telegram_id,
@@ -4989,7 +4613,6 @@ app.post(
             amount,
             reference
           )
-
           VALUES(
             $1,
             'referral_milestone',
@@ -4997,13 +4620,10 @@ app.post(
             $3
           )
           `,
-
           [
             req.auth.id,
             conf.reward,
-            String(
-              count
-            )
+            String(count)
           ]
         );
 
@@ -5014,7 +4634,6 @@ app.post(
 
 
         res.json({
-
           success:
             true,
 
@@ -5027,22 +4646,27 @@ app.post(
             )
         });
 
-      } catch (e) {
+      } catch (
+        error
+      ) {
+        try {
+          await client.query(
+            'ROLLBACK'
+          );
+        } catch {}
 
-        await client.query(
-          'ROLLBACK'
-        );
-
-        throw e;
+        throw error;
 
       } finally {
-
         client.release();
       }
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -5053,7 +4677,6 @@ app.post(
    ========================================================= */
 
 app.get(
-
   '/api/campaigns/exclusive',
 
   authenticate,
@@ -5063,13 +4686,11 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
-      const q =
-        await pool.query(`
+      const result =
+        await pool.query(
+          `
           SELECT
-
             id,
             type,
             title,
@@ -5086,33 +4707,34 @@ app.get(
           WHERE
             status='approved'
 
-          AND
-            payment_status='paid'
+            AND payment_status='paid'
 
-          AND
-            completed_count<
-            target_count
+            AND completed_count <
+              target_count
 
           ORDER BY
             approved_at DESC,
             id DESC
 
           LIMIT 100
-        `);
+          `
+        );
 
 
       res.json({
-
         success:
           true,
 
         items:
-          q.rows
+          result.rows
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -5123,7 +4745,6 @@ app.get(
    ========================================================= */
 
 app.post(
-
   '/api/campaigns/quote',
 
   authenticate,
@@ -5132,19 +4753,15 @@ app.post(
     req,
     res
   ) => {
-
     const target =
       Math.max(
-
         1,
 
         Math.min(
-
           100000,
 
           Number(
-            req.body
-              .targetCount ||
+            req.body.targetCount ||
             1
           )
         )
@@ -5152,7 +4769,6 @@ app.post(
 
 
     res.json({
-
       success:
         true,
 
@@ -5176,7 +4792,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/api/campaigns',
 
   authenticate,
@@ -5191,48 +4806,29 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const {
-
         type,
-
         title,
-
         targetUrl,
-
         description = '',
-
         targetCount,
-
         paymentMethod,
-
         verificationType =
           'manual',
-
         chatId =
           null,
-
         rewardPerUser =
           0
-
-      } =
-        req.body;
+      } = req.body;
 
 
       const allowedTypes = [
-
         'Channel',
-
         'Group',
-
         'Bot',
-
         'Website',
-
         'Link',
-
         'Gift'
       ];
 
@@ -5241,19 +4837,14 @@ app.post(
         !allowedTypes.includes(
           type
         ) ||
-
         !title ||
-
         !/^https?:\/\//i.test(
-          targetUrl ||
-          ''
+          targetUrl || ''
         )
       ) {
-
         return res
           .status(400)
           .json({
-
             success:
               false,
 
@@ -5265,11 +4856,9 @@ app.post(
 
       const count =
         Math.max(
-
           1,
 
           Math.min(
-
             100000,
 
             Number(
@@ -5282,26 +4871,17 @@ app.post(
 
       const method =
         paymentMethod ===
-        'GRAM'
-
+          'GRAM'
           ? 'GRAM'
-
           : 'MAI';
 
 
       const amount =
-
         count *
-
         (
-          method ===
-          'MAI'
-
-            ? cfg
-                .promoteMaiPerSlot
-
-            : cfg
-                .promoteGramPerSlot
+          method === 'MAI'
+            ? cfg.promoteMaiPerSlot
+            : cfg.promoteGramPerSlot
         );
 
 
@@ -5310,7 +4890,6 @@ app.post(
 
 
       try {
-
         await client.query(
           'BEGIN'
         );
@@ -5320,26 +4899,25 @@ app.post(
           method ===
           'MAI'
         ) {
-
           const deducted =
             await client.query(
-
               `
               UPDATE users
 
               SET
-                balance=balance-$2
+                balance =
+                  balance - $2,
+
+                updated_at =
+                  NOW()
 
               WHERE
                 telegram_id=$1
 
-              AND
-                balance>=$2
+                AND balance >= $2
 
-              RETURNING
-                balance
+              RETURNING balance
               `,
-
               [
                 req.auth.id,
                 amount
@@ -5350,16 +4928,13 @@ app.post(
           if (
             !deducted.rowCount
           ) {
-
             await client.query(
               'ROLLBACK'
             );
 
-
             return res
               .status(409)
               .json({
-
                 success:
                   false,
 
@@ -5372,54 +4947,28 @@ app.post(
 
         const inserted =
           await client.query(
-
             `
             INSERT INTO campaigns(
-
               owner_id,
-
               type,
-
               title,
-
               target_url,
-
               description,
-
               target_count,
-
               reward_per_user,
-
               payment_method,
-
               payment_amount,
-
               payment_status,
-
               verification_type,
-
               chat_id
             )
-
             VALUES(
-
-              $1,
-              $2,
-              $3,
-              $4,
-              $5,
-              $6,
-              $7,
-              $8,
-              $9,
-              $10,
-              $11,
-              $12
+              $1,$2,$3,$4,$5,$6,
+              $7,$8,$9,$10,$11,$12
             )
 
             RETURNING *
             `,
-
             [
               req.auth.id,
 
@@ -5450,11 +4999,8 @@ app.post(
 
               amount,
 
-              method ===
-              'MAI'
-
+              method === 'MAI'
                 ? 'paid'
-
                 : 'pending',
 
               verificationType,
@@ -5468,42 +5014,26 @@ app.post(
           method ===
           'MAI'
         ) {
-
           await client.query(
-
             `
             INSERT INTO transactions(
-
               telegram_id,
-
               type,
-
               amount,
-
               reference
             )
-
             VALUES(
-
               $1,
-
               'promotion_payment',
-
               $2,
-
               $3
             )
             `,
-
             [
               req.auth.id,
-
               -amount,
-
               String(
-                inserted
-                  .rows[0]
-                  .id
+                inserted.rows[0].id
               )
             ]
           );
@@ -5516,31 +5046,34 @@ app.post(
 
 
         res.json({
-
           success:
             true,
 
           campaign:
-            inserted
-              .rows[0]
+            inserted.rows[0]
         });
 
-      } catch (e) {
+      } catch (
+        error
+      ) {
+        try {
+          await client.query(
+            'ROLLBACK'
+          );
+        } catch {}
 
-        await client.query(
-          'ROLLBACK'
-        );
-
-        throw e;
+        throw error;
 
       } finally {
-
         client.release();
       }
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -5551,7 +5084,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/api/campaigns/:id/complete',
 
   authenticate,
@@ -5561,34 +5093,28 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const client =
         await pool.connect();
 
 
       try {
-
         await client.query(
           'BEGIN'
         );
 
 
-        const q =
+        const result =
           await client.query(
-
             `
             SELECT *
 
             FROM campaigns
 
-            WHERE
-              id=$1
+            WHERE id=$1
 
             FOR UPDATE
             `,
-
             [
               req.params.id
             ]
@@ -5596,31 +5122,25 @@ app.post(
 
 
         const campaign =
-          q.rows[0];
+          result.rows[0];
 
 
         if (
           !campaign ||
-
           campaign.status !==
             'approved' ||
-
           campaign.payment_status !==
             'paid' ||
-
           campaign.completed_count >=
             campaign.target_count
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -5638,16 +5158,13 @@ app.post(
             req.auth.id
           )
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -5658,26 +5175,16 @@ app.post(
 
 
         if (
-          campaign
-            .verification_type ===
-            'telegram_member'
-
-          &&
-
-          campaign
-            .chat_id
+          campaign.verification_type ===
+            'telegram_member' &&
+          campaign.chat_id
         ) {
-
           const member =
             await telegram(
-
               'getChatMember',
-
               {
-
                 chat_id:
-                  campaign
-                    .chat_id,
+                  campaign.chat_id,
 
                 user_id:
                   req.auth.id
@@ -5686,39 +5193,31 @@ app.post(
 
 
           const ok =
-
             [
               'creator',
               'administrator',
               'member'
             ].includes(
               member.status
-            )
-
-            ||
+            ) ||
 
             (
               member.status ===
-                'restricted'
-
-              &&
-
-              member
-                .is_member
+                'restricted' &&
+              member.is_member
             );
 
 
-          if (!ok) {
-
+          if (
+            !ok
+          ) {
             await client.query(
               'ROLLBACK'
             );
 
-
             return res
               .status(409)
               .json({
-
                 success:
                   false,
 
@@ -5728,20 +5227,16 @@ app.post(
           }
 
         } else if (
-          campaign
-            .verification_type !==
+          campaign.verification_type !==
           'manual'
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -5753,37 +5248,25 @@ app.post(
 
         const inserted =
           await client.query(
-
             `
             INSERT INTO campaign_completions(
-
               campaign_id,
-
               telegram_id,
-
               rewarded
             )
-
             VALUES(
-              $1,
-              $2,
-              $3
+              $1,$2,$3
             )
 
             ON CONFLICT
             DO NOTHING
 
-            RETURNING
-              campaign_id
+            RETURNING campaign_id
             `,
-
             [
               campaign.id,
-
               req.auth.id,
-
-              campaign
-                .reward_per_user
+              campaign.reward_per_user
             ]
           );
 
@@ -5791,16 +5274,13 @@ app.post(
         if (
           !inserted.rowCount
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -5811,18 +5291,15 @@ app.post(
 
 
         await client.query(
-
           `
           UPDATE campaigns
 
           SET
-            completed_count=
-            completed_count+1
+            completed_count =
+              completed_count + 1
 
-          WHERE
-            id=$1
+          WHERE id=$1
           `,
-
           [
             campaign.id
           ]
@@ -5831,65 +5308,47 @@ app.post(
 
         if (
           safeNumber(
-            campaign
-              .reward_per_user
-          ) >
-          0
+            campaign.reward_per_user
+          ) > 0
         ) {
-
           await client.query(
-
             `
             UPDATE users
 
             SET
-              balance=balance+$2
+              balance =
+                balance + $2,
 
-            WHERE
-              telegram_id=$1
+              updated_at =
+                NOW()
+
+            WHERE telegram_id=$1
             `,
-
             [
               req.auth.id,
-
-              campaign
-                .reward_per_user
+              campaign.reward_per_user
             ]
           );
 
 
           await client.query(
-
             `
             INSERT INTO transactions(
-
               telegram_id,
-
               type,
-
               amount,
-
               reference
             )
-
             VALUES(
-
               $1,
-
               'exclusive_reward',
-
               $2,
-
               $3
             )
             `,
-
             [
               req.auth.id,
-
-              campaign
-                .reward_per_user,
-
+              campaign.reward_per_user,
               String(
                 campaign.id
               )
@@ -5904,14 +5363,12 @@ app.post(
 
 
         res.json({
-
           success:
             true,
 
           reward:
             safeNumber(
-              campaign
-                .reward_per_user
+              campaign.reward_per_user
             ),
 
           user:
@@ -5920,33 +5377,35 @@ app.post(
             )
         });
 
-      } catch (e) {
+      } catch (
+        error
+      ) {
+        try {
+          await client.query(
+            'ROLLBACK'
+          );
+        } catch {}
 
-        await client.query(
-          'ROLLBACK'
-        );
-
-        throw e;
+        throw error;
 
       } finally {
-
         client.release();
       }
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
-
-
 /* =========================================================
    WALLET BIND
    ========================================================= */
 
 app.post(
-
   '/api/wallet/bind',
 
   authenticate,
@@ -5961,9 +5420,7 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const address =
         String(
           req.body.address ||
@@ -5972,17 +5429,12 @@ app.post(
 
 
       if (
-        address.length <
-          20 ||
-
-        address.length >
-          150
+        address.length < 20 ||
+        address.length > 150
       ) {
-
         return res
           .status(400)
           .json({
-
             success:
               false,
 
@@ -5994,21 +5446,17 @@ app.post(
 
       const other =
         await pool.query(
-
           `
           SELECT
             telegram_id
 
-          FROM
-            users
+          FROM users
 
           WHERE
             wallet_address=$1
 
-          AND
-            telegram_id<>$2
+            AND telegram_id<>$2
           `,
-
           [
             address,
             req.auth.id
@@ -6019,11 +5467,9 @@ app.post(
       if (
         other.rowCount
       ) {
-
         return res
           .status(409)
           .json({
-
             success:
               false,
 
@@ -6034,16 +5480,13 @@ app.post(
 
 
       await pool.query(
-
         `
         UPDATE users
 
         SET
-
           wallet_address=$2,
 
           wallet_connected_at=
-
             CASE
 
               WHEN
@@ -6057,12 +5500,13 @@ app.post(
               ELSE
                 wallet_connected_at
 
-            END
+            END,
 
-        WHERE
-          telegram_id=$1
+          updated_at=
+            NOW()
+
+        WHERE telegram_id=$1
         `,
-
         [
           req.auth.id,
           address
@@ -6071,7 +5515,6 @@ app.post(
 
 
       await logSecurity(
-
         req,
 
         'wallet_bound',
@@ -6088,7 +5531,6 @@ app.post(
 
 
       res.json({
-
         success:
           true,
 
@@ -6098,9 +5540,12 @@ app.post(
           )
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -6111,7 +5556,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/api/wallet/disconnect',
 
   authenticate,
@@ -6121,23 +5565,20 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       await pool.query(
-
         `
         UPDATE users
 
         SET
           wallet_address=NULL,
 
-          wallet_connected_at=NOW()
+          wallet_connected_at=NOW(),
 
-        WHERE
-          telegram_id=$1
+          updated_at=NOW()
+
+        WHERE telegram_id=$1
         `,
-
         [
           req.auth.id
         ]
@@ -6145,7 +5586,6 @@ app.post(
 
 
       await logSecurity(
-
         req,
 
         'wallet_disconnected',
@@ -6155,7 +5595,6 @@ app.post(
 
 
       res.json({
-
         success:
           true,
 
@@ -6165,9 +5604,12 @@ app.post(
           )
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -6178,7 +5620,6 @@ app.post(
    ========================================================= */
 
 app.get(
-
   '/api/withdrawals',
 
   authenticate,
@@ -6188,26 +5629,16 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
-      const q =
+      const result =
         await pool.query(
-
           `
           SELECT *
-
           FROM withdrawals
-
-          WHERE
-            telegram_id=$1
-
-          ORDER BY
-            created_at DESC
-
+          WHERE telegram_id=$1
+          ORDER BY created_at DESC
           LIMIT 100
           `,
-
           [
             req.auth.id
           ]
@@ -6215,7 +5646,6 @@ app.get(
 
 
       res.json({
-
         success:
           true,
 
@@ -6223,23 +5653,25 @@ app.get(
           cfg.minWithdrawal,
 
         items:
-          q.rows
+          result.rows
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
 
 
 /* =========================================================
-   WITHDRAW
+   CREATE WITHDRAWAL
    ========================================================= */
 
 app.post(
-
   '/api/withdrawals',
 
   authenticate,
@@ -6254,9 +5686,7 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
       const amount =
         Number(
           req.body.amount
@@ -6267,8 +5697,7 @@ app.post(
         String(
           req.get(
             'X-Idempotency-Key'
-          ) ||
-          ''
+          ) || ''
         );
 
 
@@ -6276,11 +5705,9 @@ app.post(
         !key ||
         key.length < 8
       ) {
-
         return res
           .status(400)
           .json({
-
             success:
               false,
 
@@ -6291,26 +5718,17 @@ app.post(
 
 
       if (
-        !Number
-          .isFinite(
-            amount
-          )
-
-        ||
-
+        !Number.isFinite(
+          amount
+        ) ||
         amount <
-          cfg.minWithdrawal
-
-        ||
-
+          cfg.minWithdrawal ||
         amount >
           cfg.withdrawMax
       ) {
-
         return res
           .status(400)
           .json({
-
             success:
               false,
 
@@ -6329,9 +5747,7 @@ app.post(
       if (
         risk.length
       ) {
-
         await logSecurity(
-
           req,
 
           'withdrawal_risk',
@@ -6347,22 +5763,13 @@ app.post(
 
       if (
         cfg.devicePolicy ===
-          'hard'
-
-        &&
-
-        cfg
-          .blockWithdrawOnRisk
-
-        &&
-
+          'hard' &&
+        cfg.blockWithdrawOnRisk &&
         risk.length
       ) {
-
         return res
           .status(403)
           .json({
-
             success:
               false,
 
@@ -6380,7 +5787,6 @@ app.post(
 
 
       try {
-
         await client.query(
           'BEGIN'
         );
@@ -6389,18 +5795,12 @@ app.post(
         const user =
           (
             await client.query(
-
               `
               SELECT *
-
               FROM users
-
-              WHERE
-                telegram_id=$1
-
+              WHERE telegram_id=$1
               FOR UPDATE
               `,
-
               [
                 req.auth.id
               ]
@@ -6409,19 +5809,15 @@ app.post(
 
 
         if (
-          !user
-            .wallet_address
+          !user.wallet_address
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -6432,31 +5828,23 @@ app.post(
 
 
         if (
-          user
-            .wallet_connected_at
-
-          &&
-
+          user.wallet_connected_at &&
           (
             Date.now() -
             new Date(
-              user
-                .wallet_connected_at
+              user.wallet_connected_at
             ).getTime()
           ) /
-          1000 <
-          cfg.walletLock
+            1000 <
+            cfg.walletLock
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -6469,23 +5857,18 @@ app.post(
         const last =
           (
             await client.query(
-
               `
               SELECT
                 created_at
 
-              FROM
-                withdrawals
+              FROM withdrawals
 
-              WHERE
-                telegram_id=$1
+              WHERE telegram_id=$1
 
-              ORDER BY
-                created_at DESC
+              ORDER BY created_at DESC
 
               LIMIT 1
               `,
-
               [
                 req.auth.id
               ]
@@ -6494,29 +5877,23 @@ app.post(
 
 
         if (
-          last
-
-          &&
-
+          last &&
           (
             Date.now() -
             new Date(
               last.created_at
             ).getTime()
           ) /
-          1000 <
-          cfg.withdrawCooldown
+            1000 <
+            cfg.withdrawCooldown
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(429)
             .json({
-
               success:
                 false,
 
@@ -6529,22 +5906,18 @@ app.post(
         const today =
           (
             await client.query(
-
               `
               SELECT
-                COUNT(*)::int c
+                COUNT(*)::int AS c
 
-              FROM
-                withdrawals
+              FROM withdrawals
 
               WHERE
                 telegram_id=$1
 
-              AND
-                created_at::date=
-                CURRENT_DATE
+                AND created_at::date=
+                  CURRENT_DATE
               `,
-
               [
                 req.auth.id
               ]
@@ -6556,16 +5929,13 @@ app.post(
           today >=
           cfg.withdrawDailyCount
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
@@ -6581,21 +5951,18 @@ app.post(
           ) <
           amount
         ) {
-
           await client.query(
             'ROLLBACK'
           );
 
-
           return res
             .status(409)
             .json({
-
               success:
                 false,
 
               message:
-                'Insufficient balance'
+                'Insufficient in-game balance'
             });
         }
 
@@ -6615,41 +5982,33 @@ app.post(
 
 
         const id =
-          crypto
-            .randomUUID();
+          crypto.randomUUID();
 
 
         const status =
-
           amount >=
-          cfg.manualReview
-
-          ||
-
+            cfg.manualReview ||
           risk.length
-
             ? 'security_check'
-
             : 'pending';
 
 
         await client.query(
-
           `
           UPDATE users
 
           SET
-
             balance=
               balance-$2,
 
             locked_balance=
-              locked_balance+$2
+              locked_balance+$2,
 
-          WHERE
-            telegram_id=$1
+            updated_at=
+              NOW()
+
+          WHERE telegram_id=$1
           `,
-
           [
             req.auth.id,
             amount
@@ -6658,62 +6017,32 @@ app.post(
 
 
         await client.query(
-
           `
           INSERT INTO withdrawals(
-
             id,
-
             telegram_id,
-
             amount,
-
             fee,
-
             receive_amount,
-
             wallet_address,
-
             status,
-
             idempotency_key,
-
             risk_flags
           )
-
           VALUES(
-
-            $1,
-            $2,
-            $3,
-            $4,
-            $5,
-            $6,
-            $7,
-            $8,
-            $9
+            $1,$2,$3,$4,$5,
+            $6,$7,$8,$9
           )
           `,
-
           [
-
             id,
-
             req.auth.id,
-
             amount,
-
             fee,
-
             receive,
-
-            user
-              .wallet_address,
-
+            user.wallet_address,
             status,
-
             key,
-
             JSON.stringify(
               risk
             )
@@ -6727,16 +6056,12 @@ app.post(
 
 
         res.json({
-
           success:
             true,
 
           withdrawal: {
-
             id,
-
             amount,
-
             fee,
 
             receiveAmount:
@@ -6745,8 +6070,7 @@ app.post(
             status,
 
             walletAddress:
-              user
-                .wallet_address
+              user.wallet_address
           },
 
           user:
@@ -6755,33 +6079,29 @@ app.post(
             )
         });
 
-      } catch (e) {
-
-        await client.query(
-          'ROLLBACK'
-        );
+      } catch (
+        error
+      ) {
+        try {
+          await client.query(
+            'ROLLBACK'
+          );
+        } catch {}
 
 
         if (
-          e.code ===
+          error.code ===
           '23505'
         ) {
-
-          const q =
+          const existing =
             await pool.query(
-
               `
               SELECT *
-
               FROM withdrawals
-
               WHERE
                 telegram_id=$1
-
-              AND
-                idempotency_key=$2
+                AND idempotency_key=$2
               `,
-
               [
                 req.auth.id,
                 key
@@ -6790,7 +6110,6 @@ app.post(
 
 
           return res.json({
-
             success:
               true,
 
@@ -6798,21 +6117,23 @@ app.post(
               true,
 
             withdrawal:
-              q.rows[0]
+              existing.rows[0]
           });
         }
 
 
-        throw e;
+        throw error;
 
       } finally {
-
         client.release();
       }
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -6823,7 +6144,6 @@ app.post(
    ========================================================= */
 
 app.get(
-
   '/api/transactions',
 
   authenticate,
@@ -6833,39 +6153,26 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
-      const q =
+      const result =
         await pool.query(
-
           `
           SELECT
-
             id,
-
             type,
-
             amount,
-
             reference,
-
             metadata,
-
             created_at
 
-          FROM
-            transactions
+          FROM transactions
 
-          WHERE
-            telegram_id=$1
+          WHERE telegram_id=$1
 
-          ORDER BY
-            created_at DESC
+          ORDER BY created_at DESC
 
           LIMIT 100
           `,
-
           [
             req.auth.id
           ]
@@ -6873,17 +6180,19 @@ app.get(
 
 
       res.json({
-
         success:
           true,
 
         items:
-          q.rows
+          result.rows
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -6894,7 +6203,6 @@ app.get(
    ========================================================= */
 
 app.get(
-
   '/admin/withdrawals',
 
   admin,
@@ -6904,26 +6212,20 @@ app.get(
     res,
     next
   ) => {
-
     try {
-
-      const q =
-        await pool.query(`
-
+      const result =
+        await pool.query(
+          `
           SELECT
             w.*,
             u.first_name,
             u.username
 
-          FROM
-            withdrawals w
+          FROM withdrawals w
 
-          JOIN
-            users u
-
-          ON
-            u.telegram_id=
-            w.telegram_id
+          JOIN users u
+            ON u.telegram_id=
+              w.telegram_id
 
           WHERE
             w.status IN(
@@ -6935,21 +6237,24 @@ app.get(
 
           ORDER BY
             w.created_at
-        `);
+          `
+        );
 
 
       res.json({
-
         success:
           true,
 
         items:
-          q.rows
+          result.rows
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -6960,7 +6265,6 @@ app.get(
    ========================================================= */
 
 app.post(
-
   '/admin/withdrawals/:id/approve',
 
   admin,
@@ -6970,12 +6274,9 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
-      const q =
+      const result =
         await pool.query(
-
           `
           UPDATE withdrawals
 
@@ -6987,15 +6288,13 @@ app.post(
           WHERE
             id=$1
 
-          AND
-            status IN(
+            AND status IN(
               'pending',
               'security_check'
             )
 
           RETURNING *
           `,
-
           [
             req.params.id
           ]
@@ -7003,17 +6302,19 @@ app.post(
 
 
       res.json({
-
         success:
-          !!q.rowCount,
+          !!result.rowCount,
 
         item:
-          q.rows[0]
+          result.rows[0]
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -7024,7 +6325,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/admin/withdrawals/:id/reject',
 
   admin,
@@ -7034,146 +6334,126 @@ app.post(
     res,
     next
   ) => {
+    const client =
+      await pool.connect();
 
     try {
+      await client.query(
+        'BEGIN'
+      );
 
-      const client =
-        await pool.connect();
 
-
-      try {
-
+      const result =
         await client.query(
-          'BEGIN'
-        );
-
-
-        const q =
-          await client.query(
-
-            `
-            SELECT *
-
-            FROM withdrawals
-
-            WHERE
-              id=$1
-
-            FOR UPDATE
-            `,
-
-            [
-              req.params.id
-            ]
-          );
-
-
-        const withdrawal =
-          q.rows[0];
-
-
-        if (
-          !withdrawal ||
-
-          [
-            'completed',
-            'rejected'
-          ].includes(
-            withdrawal.status
-          )
-        ) {
-
-          await client.query(
-            'ROLLBACK'
-          );
-
-
-          return res
-            .status(409)
-            .json({
-
-              success:
-                false,
-
-              message:
-                'Cannot reject'
-            });
-        }
-
-
-        await client.query(
-
           `
-          UPDATE withdrawals
+          SELECT *
 
-          SET
-            status='rejected',
+          FROM withdrawals
 
-            updated_at=NOW()
+          WHERE id=$1
 
-          WHERE
-            id=$1
+          FOR UPDATE
           `,
-
           [
-            withdrawal.id
+            req.params.id
           ]
         );
 
 
-        await client.query(
-
-          `
-          UPDATE users
-
-          SET
-
-            balance=
-              balance+$2,
-
-            locked_balance=
-              locked_balance-$2
-
-          WHERE
-            telegram_id=$1
-          `,
-
-          [
-            withdrawal
-              .telegram_id,
-
-            withdrawal
-              .amount
-          ]
-        );
+      const withdrawal =
+        result.rows[0];
 
 
-        await client.query(
-          'COMMIT'
-        );
-
-
-        res.json({
-          success:
-            true
-        });
-
-      } catch (e) {
-
+      if (
+        !withdrawal ||
+        [
+          'completed',
+          'rejected'
+        ].includes(
+          withdrawal.status
+        )
+      ) {
         await client.query(
           'ROLLBACK'
         );
 
-        throw e;
+        return res
+          .status(409)
+          .json({
+            success:
+              false,
 
-      } finally {
-
-        client.release();
+            message:
+              'Cannot reject'
+          });
       }
 
-    } catch (e) {
 
-      next(e);
+      await client.query(
+        `
+        UPDATE withdrawals
+
+        SET
+          status='rejected',
+
+          updated_at=NOW()
+
+        WHERE id=$1
+        `,
+        [
+          withdrawal.id
+        ]
+      );
+
+
+      await client.query(
+        `
+        UPDATE users
+
+        SET
+          balance=
+            balance+$2,
+
+          locked_balance=
+            locked_balance-$2,
+
+          updated_at=
+            NOW()
+
+        WHERE telegram_id=$1
+        `,
+        [
+          withdrawal.telegram_id,
+          withdrawal.amount
+        ]
+      );
+
+
+      await client.query(
+        'COMMIT'
+      );
+
+
+      res.json({
+        success:
+          true
+      });
+
+    } catch (
+      error
+    ) {
+      try {
+        await client.query(
+          'ROLLBACK'
+        );
+      } catch {}
+
+      next(
+        error
+      );
+
+    } finally {
+      client.release();
     }
   }
 );
@@ -7184,7 +6464,6 @@ app.post(
    ========================================================= */
 
 app.post(
-
   '/admin/withdrawals/:id/complete',
 
   admin,
@@ -7194,228 +6473,192 @@ app.post(
     res,
     next
   ) => {
+    const txHash =
+      String(
+        req.body.txHash ||
+        ''
+      ).trim();
+
+
+    if (
+      !txHash
+    ) {
+      return res
+        .status(400)
+        .json({
+          success:
+            false,
+
+          message:
+            'txHash required'
+        });
+    }
+
+
+    const client =
+      await pool.connect();
+
 
     try {
-
-      const txHash =
-        String(
-          req.body.txHash ||
-          ''
-        ).trim();
+      await client.query(
+        'BEGIN'
+      );
 
 
-      if (!txHash) {
-
-        return res
-          .status(400)
-          .json({
-
-            success:
-              false,
-
-            message:
-              'txHash required'
-          });
-      }
-
-
-      const client =
-        await pool.connect();
-
-
-      try {
-
+      const result =
         await client.query(
-          'BEGIN'
-        );
-
-
-        const q =
-          await client.query(
-
-            `
-            SELECT *
-
-            FROM withdrawals
-
-            WHERE
-              id=$1
-
-            FOR UPDATE
-            `,
-
-            [
-              req.params.id
-            ]
-          );
-
-
-        const withdrawal =
-          q.rows[0];
-
-
-        if (
-          !withdrawal ||
-
-          ![
-            'approved',
-            'processing'
-          ].includes(
-            withdrawal.status
-          )
-        ) {
-
-          await client.query(
-            'ROLLBACK'
-          );
-
-
-          return res
-            .status(409)
-            .json({
-
-              success:
-                false,
-
-              message:
-                'Withdrawal is not approved'
-            });
-        }
-
-
-        await client.query(
-
           `
-          UPDATE withdrawals
+          SELECT *
 
-          SET
+          FROM withdrawals
 
-            status='completed',
+          WHERE id=$1
 
-            tx_hash=$2,
-
-            updated_at=NOW()
-
-          WHERE
-            id=$1
+          FOR UPDATE
           `,
-
           [
-            withdrawal.id,
-            txHash
+            req.params.id
           ]
         );
 
 
-        await client.query(
-
-          `
-          UPDATE users
-
-          SET
-
-            locked_balance=
-              locked_balance-$2
-
-          WHERE
-            telegram_id=$1
-          `,
-
-          [
-            withdrawal
-              .telegram_id,
-
-            withdrawal
-              .amount
-          ]
-        );
+      const withdrawal =
+        result.rows[0];
 
 
-        await client.query(
-
-          `
-          INSERT INTO transactions(
-
-            telegram_id,
-
-            type,
-
-            amount,
-
-            reference,
-
-            metadata
-          )
-
-          VALUES(
-
-            $1,
-
-            'withdrawal',
-
-            $2,
-
-            $3,
-
-            $4
-          )
-          `,
-
-          [
-            withdrawal
-              .telegram_id,
-
-            -safeNumber(
-              withdrawal
-                .amount
-            ),
-
-            withdrawal.id,
-
-            {
-              txHash
-            }
-          ]
-        );
-
-
-        await client.query(
-          'COMMIT'
-        );
-
-
-        res.json({
-          success:
-            true
-        });
-
-      } catch (e) {
-
+      if (
+        !withdrawal ||
+        ![
+          'approved',
+          'processing'
+        ].includes(
+          withdrawal.status
+        )
+      ) {
         await client.query(
           'ROLLBACK'
         );
 
-        throw e;
+        return res
+          .status(409)
+          .json({
+            success:
+              false,
 
-      } finally {
-
-        client.release();
+            message:
+              'Withdrawal is not approved'
+          });
       }
 
-    } catch (e) {
 
-      next(e);
+      await client.query(
+        `
+        UPDATE withdrawals
+
+        SET
+          status='completed',
+
+          tx_hash=$2,
+
+          updated_at=NOW()
+
+        WHERE id=$1
+        `,
+        [
+          withdrawal.id,
+          txHash
+        ]
+      );
+
+
+      await client.query(
+        `
+        UPDATE users
+
+        SET
+          locked_balance=
+            locked_balance-$2,
+
+          updated_at=
+            NOW()
+
+        WHERE telegram_id=$1
+        `,
+        [
+          withdrawal.telegram_id,
+          withdrawal.amount
+        ]
+      );
+
+
+      await client.query(
+        `
+        INSERT INTO transactions(
+          telegram_id,
+          type,
+          amount,
+          reference,
+          metadata
+        )
+        VALUES(
+          $1,
+          'withdrawal',
+          $2,
+          $3,
+          $4
+        )
+        `,
+        [
+          withdrawal.telegram_id,
+
+          -safeNumber(
+            withdrawal.amount
+          ),
+
+          withdrawal.id,
+
+          {
+            txHash
+          }
+        ]
+      );
+
+
+      await client.query(
+        'COMMIT'
+      );
+
+
+      res.json({
+        success:
+          true
+      });
+
+    } catch (
+      error
+    ) {
+      try {
+        await client.query(
+          'ROLLBACK'
+        );
+      } catch {}
+
+      next(
+        error
+      );
+
+    } finally {
+      client.release();
     }
   }
 );
 
 
 /* =========================================================
-   ADMIN CAMPAIGN APPROVAL
+   ADMIN CAMPAIGN APPROVE
    ========================================================= */
 
 app.post(
-
   '/admin/campaigns/:id/approve',
 
   admin,
@@ -7425,21 +6668,16 @@ app.post(
     res,
     next
   ) => {
-
     try {
-
-      const q =
+      const result =
         await pool.query(
-
           `
           UPDATE campaigns
 
           SET
-
             status='approved',
 
             payment_status=
-
               CASE
 
                 WHEN
@@ -7458,34 +6696,32 @@ app.post(
 
             approved_at=NOW()
 
-          WHERE
-            id=$1
+          WHERE id=$1
 
           RETURNING *
           `,
-
           [
             req.params.id,
-
-            req.body
-              .paymentStatus ||
-            null
+            req.body.paymentStatus ||
+              null
           ]
         );
 
 
       res.json({
-
         success:
-          !!q.rowCount,
+          !!result.rowCount,
 
         item:
-          q.rows[0]
+          result.rows[0]
       });
 
-    } catch (e) {
-
-      next(e);
+    } catch (
+      error
+    ) {
+      next(
+        error
+      );
     }
   }
 );
@@ -7496,7 +6732,6 @@ app.post(
    ========================================================= */
 
 app.get(
-
   '/admin/security/config',
 
   admin,
@@ -7505,14 +6740,11 @@ app.get(
     req,
     res
   ) => {
-
     res.json({
-
       success:
         true,
 
       config: {
-
         devicePolicy:
           cfg.devicePolicy,
 
@@ -7531,27 +6763,62 @@ app.get(
 
 
 /* =========================================================
+   NOT FOUND
+   ========================================================= */
+
+app.use(
+  (
+    req,
+    res,
+    next
+  ) => {
+    if (
+      res.headersSent
+    ) {
+      return next();
+    }
+
+    res
+      .status(404)
+      .json({
+        success:
+          false,
+
+        message:
+          'Route not found'
+      });
+  }
+);
+
+
+/* =========================================================
    ERROR HANDLER
    ========================================================= */
 
 app.use(
-
   (
     err,
     req,
     res,
     next
   ) => {
-
     console.error(
       err
     );
 
 
+    if (
+      res.headersSent
+    ) {
+      return next(
+        err
+      );
+    }
+
+
     res
       .status(500)
       .json({
-
         success:
           false,
 
@@ -7570,22 +6837,30 @@ app.use(
 initDb()
 
   .then(
-    () =>
-
+    () => {
       app.listen(
         PORT,
-
-        () =>
+        () => {
           console.log(
             `MAI Network API running on ${PORT}`
-          )
-      )
+          );
+
+          console.log(
+            `MAI Jetton: ${MAI_JETTON_MASTER}`
+          );
+
+          console.log(
+            'Level mode: in-game + TON wallet holding'
+          );
+        }
+      );
+    }
   )
 
   .catch(
     error => {
-
       console.error(
+        'MAI Network startup failed:',
         error
       );
 

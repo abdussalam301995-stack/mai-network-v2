@@ -1,6 +1,12 @@
 /* =========================================================
-   MAI NETWORK v3.2
-   CLEAN / MOBILE / TELEGRAM WEBVIEW STABLE
+   MAI NETWORK
+   App.css — PART 1 / 4
+   HOME + TOP UI + MAIN COIN
+   ========================================================= */
+
+
+/* =========================================================
+   GLOBAL RESET
    ========================================================= */
 
 * {
@@ -10,26 +16,34 @@
 html,
 body,
 #root {
-  margin: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
   background: #03050a;
-  color: #fff;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+
+  background: #03050a;
+  color: #ffffff;
 
   font-family:
     Inter,
-    system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
+    Roboto,
+    Arial,
     sans-serif;
 
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-}
-
-body {
-  overflow: hidden;
 }
 
 button,
@@ -40,53 +54,77 @@ select {
 }
 
 button {
+  border: 0;
+  outline: 0;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+
+  -webkit-tap-highlight-color:
+    transparent;
 }
 
 button:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  opacity: 0.55;
 }
 
 img {
+  display: block;
   max-width: 100%;
+
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+a {
+  color: inherit;
 }
 
 
 /* =========================================================
-   APP
+   APP ROOT
    ========================================================= */
 
 .app {
+  position: relative;
+
+  width: 100%;
   height: 100dvh;
+
   overflow: hidden;
+
   background: #03050a;
 
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  isolation: isolate;
 }
 
 .screen {
   position: relative;
-  z-index: 5;
+  z-index: 10;
 
-  height: calc(100dvh - 78px);
+  width: 100%;
+  height:
+    calc(
+      100dvh - 76px
+    );
 
-  overflow-y: auto;
   overflow-x: hidden;
+  overflow-y: auto;
 
   padding:
-    max(10px, env(safe-area-inset-top))
+    max(
+      10px,
+      env(safe-area-inset-top)
+    )
     12px
-    26px;
+    28px;
 
   scrollbar-width: none;
 
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y:
+    contain;
 
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  -webkit-overflow-scrolling:
+    touch;
 }
 
 .screen::-webkit-scrollbar {
@@ -96,87 +134,88 @@ img {
 
 /* =========================================================
    BACKGROUND
-   IMPORTANT:
-   Base image never changes opacity/filter.
-   This reduces Telegram Android WebView flicker.
    ========================================================= */
 
 .bg {
   position: fixed;
-  inset: 0;
-
   z-index: 0;
+
+  inset: 0;
 
   overflow: hidden;
 
-  background: #03050a;
-
   pointer-events: none;
 
+  background: #03050a;
+
   isolation: isolate;
-
-  contain: paint;
-
-  filter: none !important;
-  transform: none !important;
-}
-
-.bg::after {
-  display: none !important;
 }
 
 .bgImage {
   position: absolute;
+  z-index: 0;
 
   inset: -3px;
 
-  z-index: 0;
+  background-repeat:
+    no-repeat;
 
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
+  background-position:
+    center center;
+
+  background-size:
+    cover;
 
   opacity: 1 !important;
   visibility: visible !important;
 
   transform:
-    translate3d(0, 0, 0)
+    translate3d(
+      0,
+      0,
+      0
+    )
     scale(1.012);
 
   -webkit-transform:
-    translate3d(0, 0, 0)
+    translate3d(
+      0,
+      0,
+      0
+    )
     scale(1.012);
 
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  backface-visibility:
+    hidden;
 
-  will-change: auto;
+  -webkit-backface-visibility:
+    hidden;
 }
 
 .bgShade {
   position: absolute;
+  z-index: 1;
 
   inset: 0;
-
-  z-index: 1;
 
   background:
     linear-gradient(
       180deg,
-      rgba(2, 4, 10, 0.15),
-      rgba(0, 0, 0, 0.09) 42%,
-      rgba(0, 0, 0, 0.66)
+      rgba(2, 4, 10, 0.18),
+      rgba(2, 4, 10, 0.11) 38%,
+      rgba(1, 2, 5, 0.62) 77%,
+      rgba(0, 0, 0, 0.85)
     ),
     radial-gradient(
-      circle at 50% 42%,
-      rgba(255, 174, 38, 0.05),
-      transparent 55%
+      circle at 50% 38%,
+      rgba(255, 184, 55, 0.09),
+      transparent 48%
     );
 }
 
 
 /* =========================================================
-   BACKGROUND FX
+   BACKGROUND EFFECTS
    ========================================================= */
 
 .cloud,
@@ -185,76 +224,86 @@ img {
 .beam {
   position: absolute;
 
-  z-index: 2;
-
   pointer-events: none;
 }
 
 .cloud {
-  width: 58vw;
-  height: 18vh;
+  z-index: 2;
+
+  width: 60vw;
+  height: 20vh;
 
   border-radius: 50%;
 
-  filter: blur(18px);
+  opacity: 0.10;
 
-  opacity: 0.12;
+  filter:
+    blur(20px);
 
   background:
     radial-gradient(
-      ellipse at center,
-      #fff6d7 0%,
-      rgba(255, 198, 98, 0.4) 24%,
+      ellipse,
+      rgba(255, 245, 214, 0.9),
+      rgba(255, 187, 72, 0.30) 30%,
       transparent 70%
     );
 
   animation:
-    cloudMove 32s linear infinite;
-
-  will-change: transform;
+    cloudFloat
+    32s
+    linear
+    infinite;
 }
 
 .c1 {
-  top: 55%;
-  left: -25vw;
+  top: 54%;
+  left: -34vw;
 }
 
 .c2 {
   top: 70%;
-  left: 65vw;
+  left: 60vw;
 
-  animation-duration: 38s;
-  animation-direction: reverse;
+  animation-duration:
+    40s;
+
+  animation-direction:
+    reverse;
 }
 
 .water {
+  z-index: 2;
+
   left: 0;
   right: 0;
+  bottom: 4%;
 
-  bottom: 6%;
+  height: 34%;
 
-  height: 38%;
-
-  opacity: 0.08;
+  opacity: 0.05;
 
   background:
     repeating-linear-gradient(
-      176deg,
+      175deg,
       transparent 0 12px,
-      rgba(255, 190, 58, 0.6) 13px 14px,
-      transparent 15px 28px
+      rgba(255, 188, 62, 0.6)
+        13px 14px,
+      transparent 15px 29px
     );
 
-  mix-blend-mode: screen;
-
   animation:
-    waterMove 10s linear infinite;
+    waterFlow
+    12s
+    linear
+    infinite;
 }
 
 .stars {
+  z-index: 2;
+
   inset: -20%;
 
-  opacity: 0.22;
+  opacity: 0.17;
 
   background-image:
     radial-gradient(
@@ -264,157 +313,187 @@ img {
     ),
     radial-gradient(
       circle,
-      #ffc34a 0 1px,
+      #ffc856 0 1px,
       transparent 1.4px
     );
 
   background-size:
-    87px 93px,
-    131px 149px;
+    91px 97px,
+    137px 149px;
 
   animation:
-    starsMove 58s linear infinite;
-
-  will-change: transform;
+    starsFloat
+    55s
+    linear
+    infinite;
 }
 
 .beam {
-  top: -10%;
+  z-index: 3;
+
+  top: -8%;
   left: 50%;
 
-  width: 3px;
-  height: 90%;
+  width: 2px;
+  height: 80%;
 
-  opacity: 0.7;
+  opacity: 0.62;
+
+  transform:
+    translateX(-50%);
 
   background:
     linear-gradient(
       180deg,
-      rgba(255, 194, 59, 0),
-      #ffd05f 25%,
-      #fff4b5 50%,
-      #ffbd36 75%,
+      transparent,
+      #ffc94e 30%,
+      #fff2a7 50%,
+      #ffad24 72%,
       transparent
     );
 
   box-shadow:
-    0 0 22px #ffb52e,
-    0 0 70px rgba(255, 169, 44, 0.7);
+    0 0 18px
+    rgba(255, 185, 53, 0.95),
 
-  transform:
-    translate3d(-50%, 0, 0);
+    0 0 58px
+    rgba(255, 156, 26, 0.44);
 
   animation:
-    beamBreathe 5s ease-in-out infinite;
+    beamPulse
+    4.8s
+    ease-in-out
+    infinite;
 }
 
 
 /* =========================================================
-   GLASS
-   No backdrop blur because Telegram Android can flicker.
+   GLASS CARD
    ========================================================= */
 
 .glass {
-  background:
-    linear-gradient(
-      145deg,
-      rgba(5, 10, 18, 0.96),
-      rgba(2, 4, 9, 0.92)
-    );
-
   border:
     1px solid
-    rgba(255, 190, 64, 0.68);
-
-  box-shadow:
-    inset 0 0 22px
-    rgba(255, 169, 28, 0.04),
-
-    0 8px 28px
-    rgba(0, 0, 0, 0.30),
-
-    0 0 18px
-    rgba(255, 167, 35, 0.07);
+    rgba(255, 190, 70, 0.55);
 
   border-radius: 17px;
 
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 12, 19, 0.97),
+      rgba(3, 5, 10, 0.94)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255, 236, 179, 0.03),
+
+    inset 0 0 22px
+    rgba(255, 176, 38, 0.025),
+
+    0 8px 24px
+    rgba(0, 0, 0, 0.32),
+
+    0 0 14px
+    rgba(255, 169, 33, 0.05);
+
+  -webkit-backdrop-filter:
+    none !important;
+
+  backdrop-filter:
+    none !important;
 }
 
 
 /* =========================================================
-   LOADING
+   LOADING SCREEN
    ========================================================= */
 
 .loading {
-  height: 100dvh;
-
-  background-size: cover;
-  background-position: center;
-
   position: relative;
+
+  width: 100%;
+  height: 100dvh;
 
   display: flex;
   align-items: flex-end;
   justify-content: center;
 
-  padding-bottom: 22vh;
+  padding-bottom: 21vh;
+
+  overflow: hidden;
+
+  background-position:
+    center center;
+
+  background-size:
+    cover;
 }
 
 .loading::after {
   content: "";
 
   position: absolute;
+
   inset: 0;
 
   background:
     linear-gradient(
       180deg,
-      transparent 58%,
-      rgba(0, 0, 0, 0.30)
+      transparent 54%,
+      rgba(0, 0, 0, 0.48)
     );
 }
 
 .loadBox {
   position: relative;
+  z-index: 3;
 
-  z-index: 2;
-
-  width: min(76vw, 430px);
+  width:
+    min(
+      78vw,
+      430px
+    );
 
   text-align: center;
-
-  color: #fff;
 }
 
 .initializing {
-  margin-bottom: 10px;
+  margin-bottom: 11px;
 
-  font:
-    600 13px/1.2
+  color: #fff2c3;
+
+  font-family:
     Georgia,
+    "Times New Roman",
     serif;
 
-  letter-spacing: 5px;
+  font-size: 13px;
+  font-weight: 700;
+
+  letter-spacing: 4px;
 }
 
 .bar {
-  height: 10px;
+  width: 100%;
+  height: 11px;
 
   padding: 2px;
 
+  overflow: hidden;
+
   border:
     1px solid
-    #ffe7a0;
+    rgba(255, 229, 145, 0.9);
 
   border-radius: 999px;
 
-  background: #07080d;
+  background: #07090d;
 
   box-shadow:
     0 0 18px
-    #f6a927;
+    rgba(255, 173, 36, 0.72);
 }
 
 .bar i {
@@ -427,125 +506,59 @@ img {
   background:
     linear-gradient(
       90deg,
-      #c66b00,
-      #ffd965,
-      #fff4bb
+      #a85d00,
+      #e99822,
+      #ffdc6b,
+      #fff1a9
     );
 
   box-shadow:
-    0 0 15px
-    #ffb522;
+    0 0 13px
+    #ffb22d;
 
   transition:
-    width 0.12s;
+    width 0.12s linear;
 }
 
-.loadBox b {
+.loadBox > b {
   display: block;
 
-  margin-top: 8px;
+  margin-top: 9px;
 
-  font-size: 15px;
+  color: #ffe39b;
+
+  font-size: 14px;
 
   letter-spacing: 2px;
 }
 
 
 /* =========================================================
-   FATAL
+   FATAL SCREEN
    ========================================================= */
 
 .fatal {
+  width: 100%;
   height: 100dvh;
 
   display: grid;
 
   place-content: center;
 
-  text-align: center;
-
   padding: 30px;
+
+  background: #05070b;
+
+  color: white;
+
+  text-align: center;
 }
 
 .fatal img {
-  display: block;
+  width: 112px;
+  height: 112px;
 
-  width: 120px;
-  height: 120px;
-
-  margin: auto;
-
-  border-radius: 50%;
-
-  object-fit: cover;
-
-  opacity: 1 !important;
-
-  box-shadow:
-    0 0 40px
-    #d58c22;
-}
-
-
-/* =========================================================
-   HOME
-   ========================================================= */
-
-.homePage {
-  max-width: 560px;
-
-  margin: auto;
-
-  min-height: 100%;
-
-  display: flex;
-  flex-direction: column;
-
-  justify-content: space-between;
-
-  gap: 9px;
-
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
-
-
-/* =========================================================
-   TOP GRID
-   ========================================================= */
-
-.topGrid {
-  display: grid;
-
-  grid-template-columns:
-    1fr
-    1fr;
-
-  gap: 8px;
-}
-
-
-/* ---------------------------------------------------------
-   BRAND
-   --------------------------------------------------------- */
-
-.brand {
-  min-height: 72px;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 8px;
-
-  padding: 8px;
-}
-
-.brand img {
-  flex: 0 0 auto;
-
-  width: 52px;
-  height: 52px;
+  margin: 0 auto 12px;
 
   border-radius: 50%;
 
@@ -555,23 +568,153 @@ img {
   visibility: visible !important;
 
   box-shadow:
-    0 0 18px
-    rgba(231, 168, 61, 0.85);
+    0 0 34px
+    rgba(255, 177, 43, 0.72);
+}
+
+.fatal h2 {
+  margin:
+    5px
+    0;
+
+  color: #ffe094;
+}
+
+.fatal p {
+  color: #b7bec9;
+}
+
+
+/* =========================================================
+   HOME
+   ========================================================= */
+
+.homePage {
+  width: 100%;
+  max-width: 560px;
+
+  min-height: 100%;
+
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   TOP GRID
+   Layout:
+   Row 1: Brand / Total Balance
+   Row 2: Profile / Task
+   Row 3: Wallet Holding full width
+   ========================================================= */
+
+.topGrid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  grid-template-areas:
+    "brand balance"
+    "profile task"
+    "wallet wallet";
+
+  gap: 8px;
+
+  width: 100%;
+}
+
+.brand {
+  grid-area: brand;
+}
+
+.balance {
+  grid-area: balance;
+}
+
+.profileMini {
+  grid-area: profile;
+}
+
+.taskTopCard {
+  grid-area: task;
+}
+
+.walletHoldingCard {
+  grid-area: wallet;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.brand {
+  min-width: 0;
+  min-height: 75px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding:
+    9px
+    9px;
+}
+
+.brand > img {
+  flex: 0 0 auto;
+
+  width: 50px;
+  height: 50px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  box-shadow:
+    0 0 14px
+    rgba(255, 188, 59, 0.74);
+}
+
+.brand > div {
+  min-width: 0;
 }
 
 .brand strong {
   display: block;
 
-  color: #ffe096;
+  overflow: hidden;
 
-  font:
-    700 clamp(13px, 3.6vw, 17px)
+  color: #ffe09a;
+
+  font-family:
     Georgia,
+    "Times New Roman",
     serif;
 
-  letter-spacing: 0.6px;
+  font-size:
+    clamp(
+      12px,
+      3.45vw,
+      16px
+    );
+
+  font-weight: 800;
+
+  letter-spacing: 0.5px;
 
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .brand span {
@@ -579,22 +722,26 @@ img {
 
   margin-top: 3px;
 
-  color: #e0e3e8;
+  color: #e9edf2;
 
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .brand small {
   display: block;
 
-  margin-top: 2px;
+  margin-top: 3px;
 
-  color: #afb5be;
+  overflow: hidden;
 
-  font-size: 9px;
+  color: #969fac;
+
+  font-size: 8px;
+  font-weight: 500;
 
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .online {
@@ -607,58 +754,63 @@ img {
 
   border-radius: 50%;
 
-  background: #19f565;
+  background: #28f578;
 
   box-shadow:
-    0 0 8px
-    #19f565;
+    0 0 7px
+    #20ef70;
 }
 
 
-/* ---------------------------------------------------------
-   BALANCE
-   --------------------------------------------------------- */
+/* =========================================================
+   TOTAL BALANCE TOP CARD
+   ========================================================= */
 
 .balance {
-  min-height: 72px;
+  min-width: 0;
+  min-height: 75px;
 
   display: flex;
-
   align-items: center;
 
-  gap: 7px;
+  gap: 6px;
 
   padding:
     8px
-    9px;
+    8px;
 
-  color: #fff;
+  color: #ffffff;
 
   text-align: left;
-
-  border-radius: 17px;
 }
 
 .balance > .ico {
-  font-size: 20px;
+  flex: 0 0 auto;
 
-  color: #ffd368;
+  color: #ffd664;
+
+  font-size: 18px;
 }
 
-.balance img {
-  width: 31px;
-  height: 31px;
-
+.balance > img {
   flex: 0 0 auto;
+
+  width: 30px;
+  height: 30px;
 
   border-radius: 50%;
 
   object-fit: cover;
 
   opacity: 1 !important;
+  visibility: visible !important;
+
+  box-shadow:
+    0 0 8px
+    rgba(255, 192, 60, 0.42);
 }
 
-.balance div {
+.balance > div {
   min-width: 0;
 
   flex: 1;
@@ -669,66 +821,85 @@ img {
 
   overflow: hidden;
 
-  color: #fff3c6;
+  color: #fff0bd;
 
   font-size:
     clamp(
-      15px,
-      4vw,
-      20px
+      14px,
+      3.8vw,
+      19px
     );
 
-  font-weight: 800;
+  font-weight: 900;
 
-  text-overflow: ellipsis;
+  line-height: 1.05;
+
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .balance span {
   display: block;
 
-  margin-top: 1px;
+  margin-top: 3px;
 
-  color: #efc66d;
+  color: #efc66e;
 
-  font-size: 9px;
+  font-size: 8px;
+  font-weight: 800;
 
-  letter-spacing: 0.7px;
+  letter-spacing: 0.65px;
+
+  white-space: nowrap;
+}
+
+.balance small {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #979fab;
+
+  font-size: 7.5px;
+
+  white-space: nowrap;
 }
 
 .balance em {
-  margin-left: auto;
+  flex: 0 0 auto;
 
-  color: #ffd166;
+  color: #ffcf5b;
 
-  font-size: 23px;
+  font-size: 20px;
+
   font-style: normal;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    PROFILE MINI
-   --------------------------------------------------------- */
+   LEFT SIDE
+   ========================================================= */
 
 .profileMini {
-  min-height: 58px;
+  min-width: 0;
+  min-height: 62px;
 
   display: flex;
-
   align-items: center;
 
-  gap: 8px;
+  gap: 9px;
 
   padding:
-    7px
-    8px;
+    8px
+    9px;
 }
 
 .profileMini .avatar {
   flex: 0 0 auto;
 
-  width: 39px;
-  height: 39px;
+  width: 40px;
+  height: 40px;
 }
 
 .profileMiniText {
@@ -737,104 +908,89 @@ img {
   flex: 1;
 }
 
+.profileMiniText > span {
+  display: block;
+
+  color: #b79a65;
+
+  font-size: 7.5px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+}
+
 .profileMiniText > b {
   display: block;
+
+  margin-top: 2px;
 
   overflow: hidden;
 
   color: #ffffff;
 
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 850;
 
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.profileMiniMeta {
-  display: flex;
-
-  align-items: center;
-
-  gap: 5px;
+.profileMiniText > small {
+  display: inline-block;
 
   margin-top: 3px;
-}
-
-.profileMiniMeta span,
-.profileMiniMeta small {
-  display: inline-flex;
-
-  align-items: center;
-
-  min-height: 20px;
 
   padding:
     3px
-    6px;
+    7px;
 
   border:
     1px solid
-    rgba(255, 192, 64, 0.32);
+    rgba(255, 195, 69, 0.31);
 
   border-radius: 999px;
 
   background:
-    rgba(
-      255,
-      184,
-      49,
-      0.06
-    );
+    rgba(255, 177, 32, 0.06);
 
-  white-space: nowrap;
-}
+  color: #ffd36c;
 
-.profileMiniMeta span {
-  color: #ffd46d;
-
-  font-size: 9px;
-
-  font-weight: 800;
-}
-
-.profileMiniMeta small {
-  color: #d7dbe2;
-
-  font-size: 9px;
+  font-size: 8px;
+  font-weight: 900;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    AVATAR
-   --------------------------------------------------------- */
+   ========================================================= */
 
 .avatar {
-  width: 42px;
-  height: 42px;
-
-  overflow: hidden;
-
   display: grid;
 
   place-items: center;
 
+  overflow: hidden;
+
   border:
     1px solid
-    #efb64d;
+    rgba(255, 195, 71, 0.72);
 
   border-radius: 50%;
 
   background:
     radial-gradient(
-      circle,
-      #6a4622,
-      #181321
+      circle at 45% 35%,
+      #795329,
+      #19131e 75%
     );
 
-  color: #ffe39c;
+  color: #ffe19a;
 
-  font-weight: 800;
+  font-weight: 900;
+
+  box-shadow:
+    0 0 10px
+    rgba(255, 184, 47, 0.18);
 }
 
 .avatar img {
@@ -848,33 +1004,36 @@ img {
 }
 
 
-/* ---------------------------------------------------------
-   WALLET HOLDING
-   --------------------------------------------------------- */
+/* =========================================================
+   TASK TOP CARD
+   RIGHT SIDE
+   ========================================================= */
 
-.walletHolding {
-  min-height: 58px;
+.taskTopCard {
+  position: relative;
+
+  min-width: 0;
+  min-height: 62px;
 
   display: flex;
-
   align-items: center;
 
   gap: 8px;
 
   padding:
-    7px
+    8px
     9px;
 
-  color: #fff;
+  color: #ffffff;
 
   text-align: left;
 }
 
-.walletHoldingIcon {
+.taskTopIcon {
   flex: 0 0 auto;
 
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
 
   display: grid;
 
@@ -882,499 +1041,266 @@ img {
 
   border:
     1px solid
-    rgba(255, 202, 89, 0.55);
+    rgba(255, 204, 91, 0.48);
 
   border-radius: 50%;
 
   background:
     radial-gradient(
       circle,
-      rgba(255, 202, 85, 0.23),
-      rgba(90, 54, 13, 0.15)
+      rgba(255, 199, 78, 0.14),
+      rgba(80, 51, 14, 0.04)
     );
 
-  color: #ffd66b;
-
-  font-size: 19px;
+  color: #ffd96c;
 
   box-shadow:
-    0 0 13px
-    rgba(255, 178, 44, 0.16);
+    0 0 12px
+    rgba(255, 183, 42, 0.10);
 }
 
-.walletHolding > div {
+.taskTopIcon .ico {
+  font-size: 21px;
+}
+
+.taskTopCard > div:nth-child(2) {
   min-width: 0;
 
   flex: 1;
 }
 
-.walletHolding small {
+.taskTopCard span {
   display: block;
 
-  color: #c5cbd4;
+  color: #c9a65f;
 
-  font-size: 8px;
-
-  font-weight: 700;
+  font-size: 7.5px;
+  font-weight: 900;
 
   letter-spacing: 0.7px;
 }
 
-.walletHolding b {
+.taskTopCard b {
   display: block;
-
-  overflow: hidden;
 
   margin-top: 2px;
 
-  color: #ffe17e;
+  overflow: hidden;
 
-  font-size: 12px;
-  font-weight: 900;
+  color: #ffffff;
 
-  text-overflow: ellipsis;
+  font-size: 11px;
+  font-weight: 850;
+
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.walletHolding em {
-  color: #ffd164;
+.taskTopCard small {
+  display: block;
 
-  font-size: 18px;
-  font-style: normal;
+  margin-top: 2px;
+
+  color: #98a1ae;
+
+  font-size: 8px;
 }
 
-
-/* ---------------------------------------------------------
-   QUICK
-   --------------------------------------------------------- */
-
-.quickStack {
-  display: grid;
-
-  gap: 6px;
-}
-
-.quick {
-  position: relative;
-
-  min-height: 41px;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 7px;
-
-  padding:
-    6px
-    8px;
-
-  color: #fff;
-
-  text-align: left;
-
-  border-radius: 14px;
-}
-
-.quick .ico {
+.taskTopCard em {
   flex: 0 0 auto;
 
-  color: #ffd268;
+  color: #ffd368;
 
   font-size: 20px;
-}
 
-.quick > span {
-  min-width: 0;
-
-  flex: 1;
-}
-
-.quick b {
-  display: block;
-
-  color: #fff;
-
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.quick small {
-  display: block;
-
-  margin-top: 1px;
-
-  color: #c6cbd3;
-
-  font-size: 9px;
-}
-
-.quick em {
-  color: #ffd166;
-
-  font-size: 19px;
   font-style: normal;
-}
-
-.dot {
-  position: absolute;
-
-  top: 5px;
-  right: 5px;
-
-  width: 9px;
-  height: 9px;
-
-  border-radius: 50%;
-
-  background: #ff2424;
-
-  box-shadow:
-    0 0 8px
-    red;
 }
 
 
 /* =========================================================
-   HERO
+   WALLET HOLDING — FULL WIDTH
    ========================================================= */
 
-.hero {
+.walletHoldingCard {
   position: relative;
 
-  z-index: 7;
+  width: 100%;
+  min-height: 62px;
 
-  min-height: 228px;
+  display: flex;
+  align-items: center;
 
-  flex: 1;
+  gap: 10px;
+
+  padding:
+    9px
+    11px;
+
+  color: #ffffff;
+
+  text-align: left;
+}
+
+.holdingIcon {
+  flex: 0 0 auto;
+
+  width: 40px;
+  height: 40px;
 
   display: grid;
 
   place-items: center;
 
-  overflow: visible;
+  border:
+    1px solid
+    rgba(255, 195, 74, 0.56);
 
-  isolation: isolate;
-
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
-
-
-/* =========================================================
-   COIN
-   ========================================================= */
-
-.coin {
-  position: relative;
-
-  z-index: 8;
-
-  width:
-    min(
-      60vw,
-      288px
-    );
-
-  aspect-ratio: 1;
-
-  padding: 0;
-
-  overflow: visible;
-
-  isolation: isolate;
-
-  border: 0;
   border-radius: 50%;
 
-  background: transparent;
+  background:
+    rgba(255, 177, 34, 0.06);
 
-  outline: none;
-
-  filter: none !important;
-
-  transform:
-    translate3d(0, 0, 0);
-
-  -webkit-transform:
-    translate3d(0, 0, 0);
-
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-
-  animation:
-    coinFloatStable
-    5.3s
-    ease-in-out
-    infinite;
-
-  will-change: transform;
+  box-shadow:
+    0 0 12px
+    rgba(255, 181, 39, 0.11);
 }
 
-.coin:active {
-  transform:
-    translate3d(
-      0,
-      2px,
-      0
-    )
-    scale(0.96);
-}
+.holdingIcon img {
+  width: 32px;
+  height: 32px;
 
-
-/* ---------------------------------------------------------
-   COIN IMAGE
-   --------------------------------------------------------- */
-
-.coinImage,
-.coin > img {
-  position: relative;
-
-  z-index: 6;
-
-  display: block;
-
-  width: 100%;
-  height: 100%;
+  border-radius: 50%;
 
   object-fit: cover;
 
   opacity: 1 !important;
   visibility: visible !important;
-
-  border-radius: 50%;
-
-  mix-blend-mode: normal !important;
-
-  filter: none !important;
-
-  transform:
-    translate3d(
-      0,
-      0,
-      0
-    );
-
-  -webkit-transform:
-    translate3d(
-      0,
-      0,
-      0
-    );
-
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-
-  box-shadow:
-    0 0 26px
-    rgba(255, 181, 48, 0.92),
-
-    0 0 72px
-    rgba(255, 165, 37, 0.38);
-
-  pointer-events: none;
-
-  user-select: none;
-
-  -webkit-user-drag: none;
 }
 
+.holdingContent {
+  min-width: 0;
 
-/* ---------------------------------------------------------
-   COIN GLOW
-   --------------------------------------------------------- */
-
-.coinGlow {
-  position: absolute;
-
-  z-index: 0;
-
-  inset: -15%;
-
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(255, 229, 139, 0.50) 0%,
-      rgba(255, 168, 28, 0.23) 36%,
-      rgba(255, 150, 20, 0.06) 58%,
-      transparent 73%
-    );
-
-  box-shadow:
-    0 0 40px
-    rgba(255, 179, 46, 0.40),
-
-    0 0 95px
-    rgba(255, 144, 24, 0.20);
-
-  animation:
-    haloBreathe
-    4.4s
-    ease-in-out
-    infinite;
-
-  pointer-events: none;
+  flex: 1;
 }
 
-
-/* ---------------------------------------------------------
-   ORBITS
-   --------------------------------------------------------- */
-
-.orbit {
-  position: absolute;
-
-  z-index: 2;
-
-  inset: -10%;
-
-  border:
-    2px solid
-    rgba(255, 205, 92, 0.62);
-
-  border-radius: 50%;
-
-  transform:
-    rotateX(70deg);
-
-  box-shadow:
-    0 0 12px
-    rgba(255, 186, 67, 0.8);
-
-  pointer-events: none;
-
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.o1 {
-  animation:
-    orbitSpin1
-    8s
-    linear
-    infinite;
-}
-
-.o2 {
-  inset:
-    6%
-    -17%;
-
-  transform:
-    rotateX(70deg)
-    rotateZ(44deg);
-
-  animation:
-    orbitSpin2
-    10s
-    linear
-    infinite;
-}
-
-
-/* ---------------------------------------------------------
-   TAP 3D ANIMATION
-   --------------------------------------------------------- */
-
-.coin.coinTapped {
-  animation:
-    coinTap3D
-    0.42s
-    cubic-bezier(
-      0.22,
-      0.9,
-      0.35,
-      1
-    ) !important;
-}
-
-.coin.coinTapped .coinImage {
-  animation:
-    coinFaceTap
-    0.42s
-    cubic-bezier(
-      0.22,
-      0.9,
-      0.35,
-      1
-    );
-}
-
-.coin.coinTapped .coinGlow {
-  animation:
-    coinGlowTap
-    0.42s
-    ease-out;
-}
-
-
-/* ---------------------------------------------------------
-   COIN FLASH
-   --------------------------------------------------------- */
-
-.coinFlash {
-  position: absolute;
-
-  z-index: 7;
-
-  inset: 8%;
-
-  border-radius: 50%;
-
-  opacity: 0;
-
-  pointer-events: none;
-
-  background:
-    radial-gradient(
-      circle at 35% 28%,
-      rgba(255, 255, 255, 0.8),
-      rgba(255, 226, 129, 0.3) 16%,
-      transparent 40%
-    );
-}
-
-.coin.coinTapped .coinFlash {
-  animation:
-    coinFlashTap
-    0.42s
-    ease-out;
-}
-
-
-/* ---------------------------------------------------------
-   GOLD PARTICLES
-   --------------------------------------------------------- */
-
-.spark {
-  position: absolute;
-
-  z-index: 12;
-
+.holdingContent > span {
   display: block;
 
+  color: #bea05f;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.8px;
+}
+
+.holdingContent > b {
+  display: block;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: #ffe188;
+
+  font-size: 14px;
+  font-weight: 900;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.holdingContent > small {
+  display: block;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: #929ba9;
+
+  font-size: 8px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.holdingRefresh {
+  flex: 0 0 auto;
+
+  width: 31px;
+  height: 31px;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(255, 192, 67, 0.30);
+
   border-radius: 50%;
 
-  background:
-    radial-gradient(
-      circle,
-      #fffbd5 0%,
-      #ffe677 34%,
-      #ffb52d 68%,
-      #e47c09 100%
-    );
+  color: #ffd46c;
 
-  box-shadow:
-    0 0 6px
-    #fff2a6,
+  font-size: 18px;
+}
 
-    0 0 12px
-    #ffb52d,
+.holdingRefresh.spinning {
+  animation:
+    refreshSpin
+    0.8s
+    linear
+    infinite;
+}
 
-    0 0 22px
-    rgba(255, 157, 21, 0.65);
+
+/* =========================================================
+   MAIN COIN AREA
+   ========================================================= */
+
+.coinArea {
+  position: relative;
+
+  width: 100%;
+
+  min-height: 270px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    10px
+    0
+    3px;
+
+  overflow: visible;
+
+  isolation: isolate;
+}
+
+
+/* =========================================================
+   COIN AURAS
+   ========================================================= */
+
+.coinAura {
+  position: absolute;
+
+  left: 50%;
+  top: 45%;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+.coinAuraOne {
+  width: 250px;
+  height: 250px;
 
   transform:
     translate(
@@ -1382,15 +1308,375 @@ img {
       -50%
     );
 
-  pointer-events: none;
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 216, 112, 0.21),
+      rgba(255, 163, 27, 0.08) 50%,
+      transparent 72%
+    );
 
   animation:
-    goldSparkFly
-    0.76s
+    auraPulse
+    4s
+    ease-in-out
+    infinite;
+}
+
+.coinAuraTwo {
+  width: 300px;
+  height: 300px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  border:
+    1px solid
+    rgba(255, 195, 63, 0.10);
+
+  animation:
+    auraRotate
+    13s
+    linear
+    infinite;
+}
+
+.coinAuraThree {
+  width: 205px;
+  height: 205px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  border:
+    1px dashed
+    rgba(255, 215, 107, 0.15);
+
+  animation:
+    auraRotateReverse
+    9s
+    linear
+    infinite;
+}
+
+
+/* =========================================================
+   MAIN MAI COIN
+   ========================================================= */
+
+.mainCoin {
+  position: relative;
+  z-index: 8;
+
+  width:
+    min(
+      58vw,
+      255px
+    );
+
+  aspect-ratio: 1;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 0;
+
+  overflow: visible;
+
+  border-radius: 50%;
+
+  background: transparent;
+
+  transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  -webkit-transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  backface-visibility:
+    hidden;
+
+  -webkit-backface-visibility:
+    hidden;
+
+  animation:
+    coinIdleFloat
+    4.8s
+    ease-in-out
+    infinite;
+}
+
+.mainCoin:active {
+  transform:
+    scale(0.96);
+}
+
+.mainCoin.coinPressed {
+  animation:
+    coinPress3D
+    0.43s
     cubic-bezier(
-      0.12,
-      0.72,
-      0.26,
+      0.2,
+      0.8,
+      0.3,
+      1
+    );
+}
+
+
+/* =========================================================
+   COIN RINGS
+   ========================================================= */
+
+.coinOuterRing {
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    2px solid
+    rgba(255, 215, 113, 0.84);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 28%,
+      rgba(255, 250, 205, 0.13),
+      rgba(255, 177, 30, 0.04) 55%,
+      rgba(8, 6, 4, 0.03)
+    );
+
+  box-shadow:
+    0 0 18px
+    rgba(255, 190, 53, 0.80),
+
+    0 0 46px
+    rgba(255, 153, 24, 0.30),
+
+    inset 0 0 18px
+    rgba(255, 214, 107, 0.12);
+}
+
+.coinMiddleRing {
+  width: 91%;
+  height: 91%;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    2px solid
+    rgba(255, 180, 46, 0.62);
+
+  border-radius: 50%;
+
+  box-shadow:
+    inset 0 0 20px
+    rgba(255, 184, 44, 0.15);
+}
+
+.coinInner {
+  width: 88%;
+  height: 88%;
+
+  display: grid;
+
+  place-items: center;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255, 223, 134, 0.66);
+
+  border-radius: 50%;
+
+  background:
+    #0a0805;
+
+  box-shadow:
+    0 0 20px
+    rgba(255, 178, 37, 0.25);
+}
+
+
+/* =========================================================
+   MAIN LOGO
+   Critical stability rules
+   ========================================================= */
+
+.mainCoinLogo {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  border-radius: 50%;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  filter: none !important;
+  mix-blend-mode: normal !important;
+
+  transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  -webkit-transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  backface-visibility:
+    hidden;
+
+  -webkit-backface-visibility:
+    hidden;
+}
+
+
+/* =========================================================
+   COIN LIGHT SHINES
+   ========================================================= */
+
+.coinShine,
+.coinShineSecond {
+  position: absolute;
+
+  pointer-events: none;
+
+  border-radius: 50%;
+}
+
+.coinShine {
+  z-index: 12;
+
+  top: 14%;
+  left: 23%;
+
+  width: 34%;
+  height: 16%;
+
+  opacity: 0.32;
+
+  transform:
+    rotate(-28deg);
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(255, 255, 255, 0.88),
+      rgba(255, 229, 143, 0.24) 45%,
+      transparent 73%
+    );
+
+  filter:
+    blur(2px);
+}
+
+.coinShineSecond {
+  z-index: 11;
+
+  right: 16%;
+  bottom: 17%;
+
+  width: 19%;
+  height: 8%;
+
+  opacity: 0.20;
+
+  transform:
+    rotate(-35deg);
+
+  background:
+    radial-gradient(
+      ellipse,
+      #fff5c1,
+      transparent 70%
+    );
+}
+
+.coinPressed .coinShine {
+  animation:
+    coinFlash
+    0.42s
+    ease-out;
+}
+
+
+/* =========================================================
+   GOLD SPARKS
+   ========================================================= */
+
+.goldSpark {
+  position: absolute;
+  z-index: 30;
+
+  display: block;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle,
+      #fffbe0 0%,
+      #ffe67b 28%,
+      #ffbb34 64%,
+      #d46a00 100%
+    );
+
+  box-shadow:
+    0 0 5px
+    #fff6ba,
+
+    0 0 11px
+    #ffba2f,
+
+    0 0 19px
+    rgba(255, 148, 20, 0.62);
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  animation:
+    sparkBurst
+    0.75s
+    cubic-bezier(
+      0.15,
+      0.7,
+      0.3,
       1
     )
     forwards;
@@ -1398,15 +1684,170 @@ img {
 
 
 /* =========================================================
-   HOME CARDS
+   TAP HINT
+   ========================================================= */
+
+.coinTapHint {
+  position: relative;
+  z-index: 7;
+
+  margin-top: 6px;
+
+  text-align: center;
+}
+
+.coinTapHint > span {
+  display: block;
+
+  color: #ffe09a;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 1.8px;
+}
+
+.coinTapHint > small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #9ea7b3;
+
+  font-size: 8px;
+
+  letter-spacing: 0.6px;
+}
+
+
+/* =========================================================
+   MINING SUMMARY
+   ========================================================= */
+
+.miningSummary {
+  width: 100%;
+
+  padding:
+    11px
+    12px;
+}
+
+.summaryMain {
+  display: flex;
+
+  align-items: baseline;
+  justify-content: center;
+
+  gap: 5px;
+
+  text-align: center;
+}
+
+.summaryMain > span {
+  color: #a8956d;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.8px;
+}
+
+.summaryMain > strong {
+  color: #ffe28f;
+
+  font-size: 20px;
+  font-weight: 950;
+
+  line-height: 1;
+}
+
+.summaryMain > small {
+  color: #eac878;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.summaryDivider {
+  width: 100%;
+  height: 1px;
+
+  margin:
+    9px
+    0;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 195, 66, 0.30),
+      transparent
+    );
+}
+
+.summaryStats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      1fr
+    );
+
+  gap: 5px;
+}
+
+.summaryStats > div {
+  min-width: 0;
+
+  text-align: center;
+}
+
+.summaryStats span {
+  display: block;
+
+  color: #8f98a5;
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.5px;
+}
+
+.summaryStats b {
+  display: block;
+
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 850;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   HOME INFORMATION CARDS
    ========================================================= */
 
 .homeCards {
   display: grid;
 
   grid-template-columns:
-    1fr
-    1fr;
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 
   gap: 8px;
 }
@@ -1414,19 +1855,19 @@ img {
 .infoCard {
   position: relative;
 
+  min-width: 0;
   min-height: 76px;
 
   display: flex;
-
   align-items: center;
 
   gap: 9px;
 
   padding:
-    10px
+    9px
     10px;
 
-  color: #fff;
+  color: #ffffff;
 
   text-align: left;
 }
@@ -1434,42 +1875,41 @@ img {
 .infoCard > .ico {
   flex: 0 0 auto;
 
-  color: #ffd158;
+  color: #ffd25c;
 
-  font-size: 28px;
+  font-size: 26px;
 }
 
 .infoCard > div {
   min-width: 0;
+
+  flex: 1;
 }
 
 .infoCard span {
   display: block;
 
-  color: #dfe3e9;
+  color: #aeb6c1;
 
-  font-size: 10px;
+  font-size: 8px;
+  font-weight: 850;
 
-  font-weight: 700;
-
-  letter-spacing: 0.3px;
+  letter-spacing: 0.6px;
 }
 
 .infoCard b {
   display: block;
 
-  margin:
-    3px
-    0
-    2px;
+  margin-top: 3px;
 
   overflow: hidden;
 
-  color: #ffe079;
+  color: #ffe083;
 
-  font-size: 12px;
-
+  font-size: 11px;
   font-weight: 900;
+
+  line-height: 1.2;
 
   text-overflow: ellipsis;
 }
@@ -1477,46 +1917,54 @@ img {
 .infoCard small {
   display: block;
 
-  color: #b3bac4;
+  margin-top: 3px;
 
-  font-size: 9px;
+  color: #9099a6;
 
-  line-height: 1.3;
+  font-size: 8px;
+
+  line-height: 1.25;
 }
 
 .infoCard em {
-  margin-left: auto;
+  flex: 0 0 auto;
 
-  color: #ffd65e;
+  color: #ffd265;
 
-  font-size: 22px;
+  font-size: 20px;
+
   font-style: normal;
 }
 
-.clickable {
-  border-radius: 17px;
+.clickable:active {
+  transform:
+    scale(0.985);
 }
 
 
 /* =========================================================
-   TAGLINE
+   HOME TAGLINE
    ========================================================= */
 
 .tagline {
   padding:
-    5px
-    3px;
+    6px
+    2px
+    4px;
 
-  color: #ffe19a;
+  color: #f4d384;
 
   text-align: center;
 
-  font:
-    700 13px
+  font-family:
     Georgia,
+    "Times New Roman",
     serif;
 
-  letter-spacing: 2.4px;
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 2px;
 }
 
 .tagline small {
@@ -1524,111 +1972,17 @@ img {
 
   margin-top: 3px;
 
-  color: #d8dce4;
+  color: #969ea9;
 
-  font:
-    700 8px
-    system-ui;
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
 
-  letter-spacing: 1.7px;
-}
-
-
-/* =========================================================
-   BOTTOM NAV
-   ========================================================= */
-
-.bottomNav {
-  position: fixed;
-
-  z-index: 40;
-
-  left: 10px;
-  right: 10px;
-
-  bottom:
-    max(
-      8px,
-      env(safe-area-inset-bottom)
-    );
-
-  height: 64px;
-
-  display: grid;
-
-  grid-template-columns:
-    repeat(
-      4,
-      1fr
-    );
-
-  overflow: hidden;
-
-  border:
-    1px solid
-    rgba(255, 191, 66, 0.68);
-
-  border-radius: 20px;
-
-  background:
-    rgba(2, 4, 9, 0.98);
-
-  box-shadow:
-    0 0 22px
-    rgba(255, 174, 37, 0.15);
-
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-
-.bottomNav button {
-  border: 0;
-
-  background: transparent;
-
-  color: #d8dbe2;
-
-  display: grid;
-
-  place-items: center;
-  align-content: center;
-
-  gap: 2px;
-}
-
-.bottomNav .ico {
-  font-size: 23px;
-}
-
-.bottomNav span {
-  font-size: 11px;
-
+  font-size: 6.8px;
   font-weight: 700;
-}
 
-.bottomNav .active {
-  color: #ffd666;
-
-  background:
-    radial-gradient(
-      circle at 50% 100%,
-      rgba(255, 176, 43, 0.34),
-      transparent 70%
-    );
-
-  box-shadow:
-    inset 0 0 16px
-    rgba(255, 178, 42, 0.12);
-}
-
-
-/* =========================================================
-   ICON
-   ========================================================= */
-
-.ico {
-  font-style: normal;
-  line-height: 1;
+  letter-spacing: 1.4px;
 }
 
 
@@ -1638,70 +1992,402 @@ img {
 
 .toast {
   position: fixed;
-
-  z-index: 100;
+  z-index: 999;
 
   top:
     max(
-      20px,
+      18px,
       env(safe-area-inset-top)
     );
 
   left: 50%;
 
-  transform:
-    translateX(-50%);
-
   width:
     min(
-      88vw,
-      460px
+      calc(100vw - 30px),
+      440px
     );
 
   padding:
     12px
-    16px;
+    14px;
+
+  transform:
+    translateX(-50%);
 
   border:
     1px solid
-    #e4a638;
+    rgba(255, 191, 62, 0.65);
 
-  border-radius: 14px;
+  border-radius: 13px;
 
   background:
-    rgba(8, 10, 15, 0.97);
+    rgba(7, 10, 15, 0.98);
 
-  color: #ffe6a6;
+  color: #ffe49d;
 
   text-align: center;
 
-  font-size: 12px;
-
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 750;
 
   box-shadow:
-    0 8px 35px #000,
-    0 0 20px
-    rgba(255, 178, 42, 0.2);
+    0 10px 32px
+    rgba(0, 0, 0, 0.70),
+
+    0 0 18px
+    rgba(255, 175, 38, 0.16);
 }
 
 
 /* =========================================================
-   GENERAL PAGES
+   BASE ICON
    ========================================================= */
 
-.subPage,
-.tasksPage,
-.friendsPage,
-.profilePage {
-  max-width: 560px;
+.ico {
+  display: inline-block;
 
-  margin: auto;
+  font-style: normal;
 
-  padding-bottom: 14px;
+  line-height: 1;
 }
 
-.subPage > header {
+
+/* =========================================================
+   PART 1 ANIMATIONS
+   ========================================================= */
+
+@keyframes cloudFloat {
+
+  from {
+    transform:
+      translate3d(
+        0,
+        0,
+        0
+      );
+  }
+
+  to {
+    transform:
+      translate3d(
+        160vw,
+        0,
+        0
+      );
+  }
+}
+
+
+@keyframes waterFlow {
+
+  from {
+    background-position:
+      0 0;
+  }
+
+  to {
+    background-position:
+      0 120px;
+  }
+}
+
+
+@keyframes starsFloat {
+
+  from {
+    transform:
+      translate3d(
+        0,
+        0,
+        0
+      );
+  }
+
+  to {
+    transform:
+      translate3d(
+        -90px,
+        65px,
+        0
+      );
+  }
+}
+
+
+@keyframes beamPulse {
+
+  0%,
+  100% {
+    opacity: 0.45;
+
+    transform:
+      translateX(-50%)
+      scaleX(1);
+  }
+
+  50% {
+    opacity: 0.72;
+
+    transform:
+      translateX(-50%)
+      scaleX(1.20);
+  }
+}
+
+
+@keyframes refreshSpin {
+
+  from {
+    transform:
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+
+@keyframes auraPulse {
+
+  0%,
+  100% {
+    opacity: 0.65;
+
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      scale(0.96);
+  }
+
+  50% {
+    opacity: 1;
+
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      scale(1.06);
+  }
+}
+
+
+@keyframes auraRotate {
+
+  from {
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      rotate(360deg);
+  }
+}
+
+
+@keyframes auraRotateReverse {
+
+  from {
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      rotate(360deg);
+  }
+
+  to {
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      rotate(0deg);
+  }
+}
+
+
+@keyframes coinIdleFloat {
+
+  0%,
+  100% {
+    transform:
+      translate3d(
+        0,
+        0,
+        0
+      )
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate3d(
+        0,
+        -6px,
+        0
+      )
+      scale(1.01);
+  }
+}
+
+
+@keyframes coinPress3D {
+
+  0% {
+    transform:
+      scale(1)
+      rotateX(0deg)
+      rotateY(0deg);
+  }
+
+  24% {
+    transform:
+      scale(0.91)
+      rotateX(8deg)
+      rotateY(-7deg);
+  }
+
+  53% {
+    transform:
+      scale(1.065)
+      translateY(-7px)
+      rotateX(-5deg)
+      rotateY(5deg);
+  }
+
+  78% {
+    transform:
+      scale(0.985)
+      translateY(2px)
+      rotateX(2deg);
+  }
+
+  100% {
+    transform:
+      scale(1)
+      translateY(0)
+      rotateX(0deg)
+      rotateY(0deg);
+  }
+}
+
+
+@keyframes coinFlash {
+
+  0% {
+    opacity: 0.28;
+  }
+
+  38% {
+    opacity: 0.95;
+
+    transform:
+      rotate(-28deg)
+      scale(1.35);
+  }
+
+  100% {
+    opacity: 0.30;
+
+    transform:
+      rotate(-28deg)
+      scale(1);
+  }
+}
+
+
+@keyframes sparkBurst {
+
+  0% {
+    opacity: 1;
+
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      scale(0.45)
+      rotate(0deg);
+  }
+
+  35% {
+    opacity: 1;
+
+    transform:
+      translate(
+        calc(
+          -50% +
+          var(--spark-x) * 0.36
+        ),
+        calc(
+          -50% +
+          var(--spark-y) * 0.36
+        )
+      )
+      scale(1.18)
+      rotate(
+        calc(
+          var(--spark-rotate) * 0.4
+        )
+      );
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(
+        calc(
+          -50% +
+          var(--spark-x)
+        ),
+        calc(
+          -50% +
+          var(--spark-y)
+        )
+      )
+      scale(0.12)
+      rotate(
+        var(--spark-rotate)
+      );
+  }
+}
+/* =========================================================
+   MAI NETWORK
+   App.css — PART 2 / 4
+   BOOST + LEVEL DETAILS
+   ========================================================= */
+
+
+/* =========================================================
+   PAGE SHELL
+   ========================================================= */
+
+.pageShell {
+  width: 100%;
+  max-width: 560px;
+
+  margin: 0 auto;
+
+  padding-bottom: 18px;
+}
+
+.pageHeader {
   display: grid;
 
   grid-template-columns:
@@ -1711,468 +2397,1009 @@ img {
 
   align-items: center;
 
-  margin-bottom: 10px;
+  gap: 8px;
+
+  margin-bottom: 12px;
 }
 
-.subPage header button {
+.backBtn {
   width: 38px;
   height: 38px;
 
+  display: grid;
+
+  place-items: center;
+
   border:
     1px solid
-    #c98b2e;
+    rgba(255, 192, 65, 0.55);
 
   border-radius: 50%;
 
-  background: #080b12;
+  background:
+    rgba(8, 11, 17, 0.96);
 
-  color: #ffd86b;
+  color: #ffd76b;
 
-  font-size: 19px;
+  font-size: 28px;
+  line-height: 1;
 }
 
-.subPage h2 {
-  margin: 0;
+.pageHeader > div {
+  min-width: 0;
 
-  color: #ffe09a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  text-align: center;
-
-  font:
-    700 24px
-    Georgia,
-    serif;
-
-  letter-spacing: 2px;
+  gap: 8px;
 }
 
+.pageHeader img {
+  width: 34px;
+  height: 34px;
 
-/* =========================================================
-   BOOST
-   ========================================================= */
-
-.boostLogo {
-  display: block;
-
-  width:
-    clamp(
-      120px,
-      45vw,
-      220px
-    );
-
-  aspect-ratio: 1;
-
-  margin:
-    4px
-    auto
-    12px;
+  flex: 0 0 auto;
 
   border-radius: 50%;
 
   object-fit: cover;
 
   opacity: 1 !important;
+  visibility: visible !important;
 
   box-shadow:
-    0 0 35px
-    rgba(216, 139, 36, 0.9);
+    0 0 12px
+    rgba(255, 184, 48, 0.40);
 }
 
-.boostNote {
-  padding: 13px;
+.pageHeader strong {
+  overflow: hidden;
+
+  color: #ffe19a;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 17px;
+  font-weight: 800;
+
+  letter-spacing: 1.2px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.headerSpace {
+  width: 38px;
+  height: 38px;
+}
+
+.pageContent {
+  width: 100%;
+}
+
+
+/* =========================================================
+   BOOST BALANCE HEADER
+   ========================================================= */
+
+.boostBalance {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding:
+    11px
+    12px;
+
+  margin-bottom: 11px;
+}
+
+.boostBalanceLogo {
+  flex: 0 0 auto;
+
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+
+  place-items: center;
 
   border:
     1px solid
-    #d49737;
+    rgba(255, 196, 71, 0.48);
 
-  border-radius: 16px;
+  border-radius: 50%;
 
   background:
-    rgba(5, 8, 13, 0.92);
+    rgba(255, 182, 44, 0.05);
+}
+
+.boostBalanceLogo img {
+  width: 40px;
+  height: 40px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  box-shadow:
+    0 0 11px
+    rgba(255, 185, 45, 0.30);
+}
+
+.boostBalance > div:nth-child(2) {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.boostBalance span {
+  display: block;
+
+  color: #aa9568;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.8px;
+}
+
+.boostBalance strong {
+  display: block;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: #ffe18b;
+
+  font-size: 20px;
+  font-weight: 950;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.boostBalance small {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #929aa6;
+
+  font-size: 8px;
+}
+
+.currentLevelPill {
+  flex: 0 0 auto;
+
+  min-width: 70px;
+
+  padding:
+    7px
+    9px;
+
+  border:
+    1px solid
+    rgba(255, 198, 73, 0.44);
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 184, 48, 0.06);
 
   text-align: center;
 }
 
-.boostNote b {
+.currentLevelPill span {
+  font-size: 7px;
+}
+
+.currentLevelPill b {
   display: block;
+
+  margin-top: 2px;
+
+  color: #ffd970;
 
   font-size: 13px;
 }
 
-.boostNote span {
-  display: block;
 
-  margin-top: 4px;
+/* =========================================================
+   BOOST INTRO
+   ========================================================= */
 
-  color: #ff6666;
+.boostIntro {
+  margin-bottom: 12px;
 
-  font-size: 11px;
-}
-
-
-/* ---------------------------------------------------------
-   LEVEL GRID
-   --------------------------------------------------------- */
-
-.levelGrid {
-  display: grid;
-
-  grid-template-columns:
-    1fr
-    1fr;
-
-  gap: 9px;
-
-  margin-top: 10px;
-}
-
-.levelCard {
-  min-height: 132px;
-
-  padding: 12px;
-
-  border:
-    1px solid
-    #d99c3b;
-
-  border-radius: 16px;
-
-  background:
-    linear-gradient(
-      150deg,
-      rgba(10, 13, 19, 0.97),
-      rgba(3, 5, 9, 0.94)
-    );
-
-  color: #fff;
-
-  box-shadow:
-    inset 0 0 18px
-    rgba(255, 184, 50, 0.06),
-
-    0 0 12px
-    rgba(255, 180, 35, 0.07);
-}
-
-.levelCard b,
-.levelCard span,
-.levelCard strong,
-.levelCard em {
-  display: block;
+  padding:
+    2px
+    4px;
 
   text-align: center;
 }
 
-.levelCard b {
-  font-size: 17px;
+.boostIntro h3 {
+  margin:
+    0
+    0
+    4px;
+
+  color: #ffe09a;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  letter-spacing: 1px;
 }
 
-.levelCard span {
-  margin: 5px;
+.boostIntro p {
+  margin:
+    0
+    auto;
 
-  color: #e7b850;
+  max-width: 360px;
 
-  font-size: 11px;
+  color: #c1c7cf;
+
+  font-size: 10px;
+
+  line-height: 1.45;
 }
 
-.levelCard strong {
-  font-size: 12px;
+.boostIntro small {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #b89b60;
+
+  font-size: 8px;
 }
 
-.levelCard em {
-  margin-top: 10px;
 
-  padding: 7px;
+/* =========================================================
+   LEVEL LIST
+   ========================================================= */
+
+.levels {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 9px;
+}
+
+.levelCard {
+  position: relative;
+
+  min-width: 0;
+  min-height: 96px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    10px;
+
+  overflow: hidden;
 
   border:
     1px solid
-    #8f6a2e;
+    rgba(255, 192, 64, 0.30);
 
-  border-radius: 10px;
+  border-radius: 15px;
 
-  background: #261e11;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(9, 13, 20, 0.98),
+      rgba(3, 5, 9, 0.96)
+    );
 
-  color: #ffd46e;
+  color: #ffffff;
 
-  font-style: normal;
+  text-align: left;
+
+  box-shadow:
+    inset 0 0 18px
+    rgba(255, 179, 42, 0.025);
+}
+
+.levelCard.unlocked {
+  border-color:
+    rgba(43, 213, 119, 0.45);
+
+  box-shadow:
+    inset 0 0 18px
+    rgba(31, 216, 111, 0.04),
+
+    0 0 14px
+    rgba(31, 213, 111, 0.05);
+}
+
+.levelCard.current {
+  border-color:
+    rgba(255, 214, 91, 0.82);
+
+  box-shadow:
+    inset 0 0 20px
+    rgba(255, 184, 44, 0.06),
+
+    0 0 18px
+    rgba(255, 177, 35, 0.10);
+}
+
+.levelCard:active {
+  transform:
+    scale(0.985);
+}
+
+
+/* =========================================================
+   LEVEL COIN
+   ========================================================= */
+
+.levelCoin {
+  position: relative;
+
+  flex: 0 0 auto;
+
+  width: 54px;
+  height: 54px;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    2px solid
+    rgba(255, 201, 78, 0.62);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 196, 69, 0.08),
+      rgba(10, 9, 6, 0.55)
+    );
+
+  box-shadow:
+    0 0 12px
+    rgba(255, 181, 40, 0.13);
+}
+
+.levelCard.unlocked .levelCoin {
+  border-color:
+    rgba(42, 223, 126, 0.72);
+
+  box-shadow:
+    0 0 14px
+    rgba(41, 219, 123, 0.18);
+}
+
+.levelCoinLogo {
+  width: 46px;
+  height: 46px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  filter: none !important;
+  mix-blend-mode: normal !important;
+
+  transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  -webkit-transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  backface-visibility:
+    hidden;
+
+  -webkit-backface-visibility:
+    hidden;
+}
+
+.levelCard.locked .levelCoinLogo {
+  opacity: 0.45 !important;
+
+  filter:
+    grayscale(0.25)
+    brightness(0.62)
+    saturate(0.75)
+    !important;
+}
+
+.levelCoinLock {
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(0, 0, 0, 0.28);
+
+  color: #ffe29c;
+
+  font-size: 16px;
+
+  text-shadow:
+    0 2px 5px
+    #000;
+}
+
+
+/* =========================================================
+   LEVEL CARD TEXT
+   ========================================================= */
+
+.levelCardText {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.levelCardText strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.levelCardText span {
+  display: block;
+
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: #afbac5;
+
+  font-size: 8.5px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.levelCard.unlocked
+.levelCardText span {
+  color: #44dc8c;
+
   font-weight: 800;
 }
 
-.levelCard em.u {
-  border-color: #2fa56b;
+.currentMark {
+  position: absolute;
+
+  top: 6px;
+  right: 7px;
+
+  padding:
+    3px
+    5px;
+
+  border:
+    1px solid
+    rgba(255, 214, 91, 0.48);
+
+  border-radius: 999px;
 
   background:
-    rgba(22, 89, 58, 0.18);
+    rgba(255, 184, 48, 0.08);
 
-  color: #40ec8f;
+  color: #ffd870;
+
+  font-size: 6px;
+  font-weight: 900;
+
+  letter-spacing: 0.5px;
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    PAGER
-   --------------------------------------------------------- */
+   ========================================================= */
 
 .pager {
   display: flex;
 
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 
-  gap: 22px;
+  gap: 16px;
 
-  margin: 14px;
+  margin-top: 14px;
 }
 
 .pager button {
   width: 38px;
   height: 38px;
 
-  border:
-    1px solid
-    #b98334;
-
-  border-radius: 50%;
-
-  background: #080a0f;
-
-  color: #ffd260;
-
-  font-size: 24px;
-}
-
-.pager span {
-  font-size: 12px;
-
-  font-weight: 700;
-}
-
-
-/* ---------------------------------------------------------
-   LEVEL DETAIL HERO
-   --------------------------------------------------------- */
-
-.levelHero {
   display: grid;
 
   place-items: center;
 
-  padding: 16px;
+  border:
+    1px solid
+    rgba(255, 193, 65, 0.42);
+
+  border-radius: 50%;
+
+  background: #080b11;
+
+  color: #ffd66a;
+
+  font-size: 22px;
+}
+
+.pager button:disabled {
+  opacity: 0.28;
+}
+
+.pager span {
+  min-width: 84px;
+
+  color: #aeb6c1;
+
+  text-align: center;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+}
+
+
+/* =========================================================
+   SELECTED LEVEL HERO
+   ========================================================= */
+
+.levelHero {
+  width: 100%;
+
+  display: grid;
+
+  place-items: center;
+
+  padding:
+    8px
+    0
+    6px;
 }
 
 .levelSeal {
   position: relative;
 
-  width: 150px;
-  height: 150px;
+  width: 168px;
+  height: 190px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: 10px;
+
+  padding-top: 4px;
+}
+
+.levelLogoWrap {
+  position: relative;
+
+  width: 148px;
+  height: 148px;
 
   display: grid;
 
   place-items: center;
 
-  overflow: hidden;
-
   border:
     3px solid
-    #e5a53e;
+    rgba(255, 201, 75, 0.88);
 
   border-radius: 50%;
 
   background:
     radial-gradient(
       circle,
-      #1f160c,
-      #05070b 70%
+      rgba(255, 193, 68, 0.12),
+      rgba(6, 7, 10, 0.65) 72%
     );
-
-  color: #ffe29a;
 
   box-shadow:
-    0 0 30px
-    #d68b20,
+    0 0 26px
+    rgba(255, 183, 44, 0.40),
 
-    inset 0 0 28px
-    rgba(255, 177, 39, 0.15);
+    0 0 55px
+    rgba(255, 153, 27, 0.12),
+
+    inset 0 0 22px
+    rgba(255, 206, 96, 0.10);
 }
 
-.levelSealLogo {
-  position: absolute;
+.levelSeal.unlocked
+.levelLogoWrap {
+  border-color:
+    rgba(44, 231, 133, 0.90);
 
-  inset: 7px;
+  box-shadow:
+    0 0 28px
+    rgba(35, 223, 123, 0.48),
 
-  width:
-    calc(
-      100% - 14px
-    );
+    0 0 55px
+    rgba(35, 223, 123, 0.12),
 
-  height:
-    calc(
-      100% - 14px
-    );
+    inset 0 0 22px
+    rgba(38, 221, 123, 0.10);
+}
+
+
+/* =========================================================
+   IMPORTANT:
+   Level logo stays bright when unlocked
+   No LVL text over the logo
+   ========================================================= */
+
+.levelMaiLogo {
+  width: 136px;
+  height: 136px;
 
   border-radius: 50%;
 
   object-fit: cover;
 
-  opacity: 0.58;
+  opacity: 1 !important;
+  visibility: visible !important;
 
-  filter:
-    brightness(0.65)
-    saturate(1.15);
+  filter: none !important;
+  mix-blend-mode: normal !important;
 
-  transform: translateZ(0);
+  transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  -webkit-transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  backface-visibility:
+    hidden;
+
+  -webkit-backface-visibility:
+    hidden;
+
+  box-shadow:
+    0 0 14px
+    rgba(255, 189, 54, 0.18);
 }
 
-.levelSeal::after {
-  content: "";
+.levelSeal.locked
+.levelMaiLogo {
+  opacity: 0.55 !important;
 
+  filter:
+    brightness(0.63)
+    saturate(0.75)
+    grayscale(0.18)
+    !important;
+}
+
+.levelLockShade {
   position: absolute;
 
   inset: 0;
 
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 50%;
+
   background:
     radial-gradient(
       circle,
-      transparent 28%,
-      rgba(0, 0, 0, 0.25) 68%
+      rgba(0, 0, 0, 0.08),
+      rgba(0, 0, 0, 0.32)
     );
 
-  pointer-events: none;
+  color: #ffe2a2;
+
+  font-size: 28px;
+
+  text-shadow:
+    0 3px 8px
+    rgba(0, 0, 0, 0.9);
 }
 
-.levelSeal > span {
-  position: relative;
 
-  z-index: 3;
+/* =========================================================
+   LEVEL NUMBER BADGE
+   Below coin, so logo is not covered
+   ========================================================= */
+
+.levelNumberBadge {
+  min-width: 78px;
 
   padding:
-    7px
-    12px;
+    6px
+    11px;
 
   border:
     1px solid
-    rgba(255, 224, 139, 0.55);
+    rgba(255, 204, 83, 0.44);
 
   border-radius: 999px;
 
   background:
-    rgba(0, 0, 0, 0.60);
+    rgba(7, 9, 13, 0.96);
 
-  color: #fff0b5;
+  color: #ffe096;
 
-  font:
-    800 16px
-    Georgia,
-    serif;
+  text-align: center;
+
+  font-size: 11px;
+  font-weight: 900;
 
   letter-spacing: 1px;
 
-  text-shadow:
-    0 2px 4px
-    #000;
-
   box-shadow:
-    0 0 18px
-    rgba(255, 178, 43, 0.28);
+    0 0 12px
+    rgba(255, 181, 41, 0.08);
 }
 
-.levelSeal.unlocked {
-  border-color: #25e176;
+.levelSeal.unlocked
+.levelNumberBadge {
+  border-color:
+    rgba(46, 224, 130, 0.52);
+
+  color: #56e69a;
+}
+
+
+/* =========================================================
+   LEVEL STATUS TITLE
+   ========================================================= */
+
+.levelStatusTitle {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  margin:
+    1px
+    0
+    11px;
+
+  color: #dfe4ea;
+
+  font-size: 10px;
+  font-weight: 850;
+
+  letter-spacing: 0.7px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+}
+
+.statusDot.unlocked {
+  background: #2ce386;
 
   box-shadow:
-    0 0 32px
-    rgba(33, 183, 101, 0.9),
+    0 0 8px
+    #2ce386;
+}
 
-    inset 0 0 28px
-    rgba(30, 223, 113, 0.14);
+.statusDot.locked {
+  background: #d48a31;
+
+  box-shadow:
+    0 0 7px
+    rgba(212, 138, 49, 0.64);
 }
 
 
 /* =========================================================
    DETAIL ROWS
+   Cleaner typography
    ========================================================= */
 
 .detailRows {
+  width: 100%;
+
   overflow: hidden;
 
   border:
     1px solid
-    #c58e36;
+    rgba(255, 193, 65, 0.45);
 
-  border-radius: 18px;
+  border-radius: 17px;
 
   background:
-    rgba(4, 7, 11, 0.92);
+    linear-gradient(
+      145deg,
+      rgba(8, 11, 17, 0.97),
+      rgba(3, 5, 9, 0.96)
+    );
+
+  box-shadow:
+    inset 0 0 18px
+    rgba(255, 183, 43, 0.025);
 }
 
-.row {
+.detailRow {
+  min-height: 53px;
+
   display: flex;
 
+  align-items: center;
   justify-content: space-between;
 
-  gap: 15px;
+  gap: 14px;
 
-  padding: 15px;
+  padding:
+    11px
+    13px;
 
   border-bottom:
     1px solid
-    rgba(214, 158, 59, 0.25);
+    rgba(255, 198, 72, 0.11);
 }
 
-.row:last-child {
+.detailRow:last-child {
   border-bottom: 0;
 }
 
-.row span {
-  color: #e4e7ec;
+.detailRow > span {
+  flex: 1;
 
-  font-size: 12px;
+  color: #b7c0ca;
+
+  font-size: 10px;
+  font-weight: 650;
+
+  line-height: 1.3;
 }
 
-.row b {
-  color: #ffe078;
+.detailRow > b {
+  max-width: 56%;
 
-  font-size: 12px;
+  color: #ffe189;
 
   text-align: right;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  line-height: 1.3;
+
+  word-break: break-word;
 }
 
-.row.big span,
-.row.big b {
-  font-size: 16px;
+.detailRow.big {
+  min-height: 62px;
+
+  background:
+    rgba(255, 184, 44, 0.035);
+}
+
+.detailRow.big > span {
+  color: #e4e7ec;
+
+  font-size: 11px;
   font-weight: 800;
 }
 
-.row.danger b {
-  color: #ff4b4b;
+.detailRow.big > b {
+  color: #fff0ae;
+
+  font-size: 14px;
+  font-weight: 950;
 }
 
+.detailRow.danger > b {
+  color: #ff746d;
+}
+
+
+/* =========================================================
+   UNLOCK BUTTON
+   ========================================================= */
+
 .unlockedBtn {
+  width: 100%;
+
   margin-top: 12px;
 
-  padding: 14px;
+  padding:
+    13px
+    12px;
 
   border:
     1px solid
-    #42ff98;
+    rgba(59, 244, 143, 0.78);
 
   border-radius: 13px;
 
   background:
     linear-gradient(
       180deg,
-      #18d96c,
-      #0c833f
+      #24dc7d,
+      #108f4c
     );
+
+  color: #042313;
 
   text-align: center;
 
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 950;
+
+  letter-spacing: 0.6px;
 
   box-shadow:
-    0 0 20px
-    rgba(30, 232, 112, 0.3);
+    0 0 18px
+    rgba(39, 222, 124, 0.19);
 }
+
+
+/* =========================================================
+   BOOST BUTTONS
+   ========================================================= */
 
 .twoBtns {
   display: grid;
@@ -2181,52 +3408,64 @@ img {
     1fr
     1fr;
 
-  gap: 10px;
+  gap: 9px;
 
   margin-top: 12px;
 }
 
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
 .goldBtn,
 .secondary,
 .copyBtn {
-  padding: 12px;
+  min-height: 43px;
 
-  border:
-    1px solid
-    #e6aa45;
+  padding:
+    10px
+    12px;
 
-  border-radius: 13px;
+  border-radius: 12px;
 
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.3px;
 }
 
 .goldBtn {
+  border:
+    1px solid
+    rgba(255, 220, 119, 0.88);
+
   background:
     linear-gradient(
       180deg,
-      #ffd46a,
-      #c87b14
+      #ffe17a,
+      #d58b22
     );
 
-  color: #140b00;
+  color: #1b1002;
 
   box-shadow:
-    0 0 17px
-    rgba(255, 179, 46, 0.22);
+    0 0 15px
+    rgba(255, 181, 44, 0.18);
 }
 
 .secondary,
 .copyBtn {
-  border-color: #59657a;
+  border:
+    1px solid
+    rgba(103, 116, 135, 0.62);
 
-  background: #111722;
+  background:
+    #111722;
 
-  color: #fff;
+  color: #ffffff;
+}
+
+.goldBtn:active,
+.secondary:active,
+.copyBtn:active {
+  transform:
+    scale(0.985);
 }
 
 .full {
@@ -2235,14 +3474,38 @@ img {
   margin-top: 10px;
 }
 
+
+/* =========================================================
+   GENERIC HINT
+   ========================================================= */
+
 .hint {
-  color: #aeb6c2;
+  color: #9fa8b5;
 
-  font-size: 10px;
+  font-size: 8.5px;
 
-  line-height: 1.5;
+  line-height: 1.45;
 
   text-align: center;
+}
+/* =========================================================
+   MAI NETWORK
+   App.css — PART 3 / 4
+   TASKS + PROMOTE + FRIENDS + PROFILE
+   ========================================================= */
+
+
+/* =========================================================
+   TASKS PAGE
+   ========================================================= */
+
+.tasksPage {
+  width: 100%;
+  max-width: 560px;
+
+  margin: 0 auto;
+
+  padding-bottom: 16px;
 }
 
 
@@ -2252,10 +3515,9 @@ img {
 
 .tabs {
   position: sticky;
-
   top: 0;
 
-  z-index: 12;
+  z-index: 20;
 
   display: grid;
 
@@ -2267,73 +3529,91 @@ img {
 
   gap: 6px;
 
-  padding: 3px;
+  padding: 4px;
+
+  margin-bottom: 10px;
+
+  border:
+    1px solid
+    rgba(255, 189, 63, 0.26);
 
   border-radius: 14px;
 
   background:
-    rgba(3, 5, 9, 0.97);
-
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
+    rgba(4, 7, 11, 0.97);
 }
 
-.tabs button,
-.payTabs button {
+.tabs button {
+  min-height: 38px;
+
   padding:
-    10px
-    5px;
+    8px
+    6px;
 
   border:
     1px solid
-    #4d4f54;
+    rgba(90, 97, 108, 0.45);
 
-  border-radius: 11px;
+  border-radius: 10px;
 
-  background: #0c1017;
+  background:
+    #0b0f16;
 
-  color: #c9cdd5;
+  color: #b5bcc6;
 
-  font-size: 11px;
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.35px;
 }
 
-.tabs button.active,
-.payTabs button.active {
-  border-color: #ffdf80;
+.tabs button.active {
+  border-color:
+    rgba(255, 220, 116, 0.85);
 
   background:
     linear-gradient(
       180deg,
-      #ffe08b,
-      #d99022
+      #ffe082,
+      #d18a22
     );
 
-  color: #171006;
+  color: #160e03;
 
-  font-weight: 900;
+  font-weight: 950;
+
+  box-shadow:
+    0 0 13px
+    rgba(255, 183, 40, 0.15);
 }
 
 
 /* =========================================================
-   STACK / TASK CARD
+   GENERIC STACK
    ========================================================= */
 
 .stack {
   display: grid;
 
   gap: 8px;
-
-  margin-top: 10px;
 }
 
-.taskCard {
-  display: flex;
 
+/* =========================================================
+   TASK CARD
+   ========================================================= */
+
+.taskCard {
+  min-width: 0;
+
+  display: flex;
   align-items: center;
 
   gap: 10px;
 
-  padding: 12px;
+  padding:
+    11px
+    12px;
 }
 
 .taskCard > div {
@@ -2345,85 +3625,108 @@ img {
 .taskCard b {
   display: block;
 
-  font-size: 13px;
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 850;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .taskCard span {
   display: block;
 
-  margin:
-    3px
-    0;
+  margin-top: 3px;
 
-  color: #ffd36b;
+  color: #ffd66f;
 
-  font-size: 11px;
+  font-size: 9px;
+  font-weight: 800;
 }
 
 .taskCard small {
   display: block;
 
-  color: #aab1bd;
+  margin-top: 3px;
 
-  font-size: 9px;
+  color: #949daa;
+
+  font-size: 8px;
+
+  line-height: 1.35;
 }
 
 .taskCard > button {
+  flex: 0 0 auto;
+
+  min-width: 70px;
+  min-height: 35px;
+
   padding:
-    9px
-    12px;
+    7px
+    10px;
 
   border:
     1px solid
-    #d89c3b;
+    rgba(255, 194, 65, 0.46);
 
-  border-radius: 11px;
+  border-radius: 10px;
 
-  background: #24170a;
+  background:
+    rgba(74, 48, 12, 0.42);
 
-  color: #ffd56b;
+  color: #ffd66d;
 
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 9px;
+  font-weight: 900;
 }
 
 .taskCard > button.done {
-  border-color: #319f68;
+  border-color:
+    rgba(50, 210, 123, 0.46);
 
   background:
-    rgba(24, 82, 55, 0.25);
+    rgba(28, 101, 67, 0.20);
 
-  color: #49e38f;
+  color: #4ae090;
 }
 
 .feature {
-  min-height: 88px;
+  min-height: 84px;
 }
 
 
 /* =========================================================
-   PARTNER / SECTION HEAD
+   SECTION HEADER
    ========================================================= */
-
-.partner {
-  margin-top: 10px;
-}
 
 .sectionHead {
   display: flex;
 
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 
   gap: 10px;
+
+  margin-bottom: 8px;
+}
+
+.sectionHead > div {
+  min-width: 0;
+
+  flex: 1;
 }
 
 .sectionHead h3 {
   margin: 0;
 
-  color: #ffe099;
+  color: #ffe09a;
 
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 850;
 }
 
 .sectionHead p {
@@ -2432,19 +3735,34 @@ img {
     0
     0;
 
-  color: #aeb4c0;
+  color: #969fab;
 
-  font-size: 10px;
+  font-size: 8px;
+
+  line-height: 1.35;
 }
 
 .compact {
+  flex: 0 0 auto;
+
+  min-height: 36px;
+
   padding:
-    9px
+    8px
     10px;
 
-  font-size: 10px;
+  font-size: 8.5px;
 
   white-space: nowrap;
+}
+
+
+/* =========================================================
+   PARTNER
+   ========================================================= */
+
+.partner {
+  margin-top: 2px;
 }
 
 .promoInfo {
@@ -2452,28 +3770,45 @@ img {
 
   gap: 12px;
 
-  margin-top: 12px;
-
-  padding: 18px;
+  padding:
+    14px;
 }
 
 .promoInfo > .ico {
-  color: #ffd166;
+  flex: 0 0 auto;
 
-  font-size: 34px;
+  color: #ffd468;
+
+  font-size: 29px;
+}
+
+.promoInfo > div {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.promoInfo b {
+  color: #ffffff;
+
+  font-size: 11px;
 }
 
 .promoInfo p {
-  color: #b8bec8;
+  margin:
+    4px
+    0
+    8px;
 
-  font-size: 11px;
+  color: #a4adb9;
 
-  line-height: 1.5;
+  font-size: 8.5px;
+
+  line-height: 1.45;
 }
 
 .chips {
   display: flex;
-
   flex-wrap: wrap;
 
   gap: 5px;
@@ -2481,69 +3816,98 @@ img {
 
 .chips span {
   padding:
-    5px
-    7px;
+    4px
+    6px;
 
   border:
     1px solid
-    #8e6a2f;
+    rgba(255, 193, 65, 0.26);
 
   border-radius: 999px;
 
-  color: #f0c771;
+  background:
+    rgba(255, 183, 44, 0.04);
 
-  font-size: 9px;
-}
+  color: #d8b66d;
 
-.empty {
-  padding: 22px;
-
-  color: #aab2bf;
-
-  text-align: center;
+  font-size: 7px;
+  font-weight: 700;
 }
 
 
 /* =========================================================
-   FORM
+   EMPTY STATE
+   ========================================================= */
+
+.empty {
+  padding:
+    22px
+    16px;
+
+  color: #969fab;
+
+  text-align: center;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   PROMOTE FORM
    ========================================================= */
 
 .form {
-  padding: 14px;
+  padding:
+    14px;
 }
 
-.form label,
-.withdrawBox label {
+.form label {
   display: block;
 
-  margin-bottom: 10px;
+  margin-bottom: 11px;
 
-  color: #d7dce5;
+  color: #c5ccd5;
 
-  font-size: 11px;
+  font-size: 9px;
+  font-weight: 700;
 }
 
 .form input,
 .form textarea,
-.form select,
-.amount input {
+.form select {
   width: 100%;
 
   margin-top: 5px;
 
-  padding: 11px;
+  padding:
+    10px
+    11px;
 
   border:
     1px solid
-    #72552a;
+    rgba(132, 96, 40, 0.55);
 
-  border-radius: 11px;
+  border-radius: 10px;
 
   outline: none;
 
-  background: #080c13;
+  background:
+    #080c12;
 
-  color: #fff;
+  color: #ffffff;
+
+  font-size: 10px;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+  border-color:
+    rgba(255, 195, 68, 0.62);
+
+  box-shadow:
+    0 0 0 2px
+    rgba(255, 181, 41, 0.05);
 }
 
 .form textarea {
@@ -2563,73 +3927,146 @@ img {
 
   margin:
     8px
-    0;
+    0
+    10px;
+}
+
+.payTabs button {
+  min-height: 38px;
+
+  border:
+    1px solid
+    rgba(90, 98, 110, 0.48);
+
+  border-radius: 10px;
+
+  background:
+    #0b1017;
+
+  color: #aeb6c1;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.payTabs button.active {
+  border-color:
+    rgba(255, 217, 108, 0.83);
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffe17e,
+      #cf8820
+    );
+
+  color: #170e02;
 }
 
 .quote {
   display: flex;
 
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 
-  padding: 13px;
+  gap: 12px;
+
+  padding:
+    11px
+    12px;
 
   border:
     1px solid
-    rgba(255, 192, 67, 0.35);
+    rgba(255, 192, 64, 0.26);
 
-  border-radius: 12px;
+  border-radius: 11px;
 
   background:
-    rgba(255, 190, 50, 0.08);
+    rgba(255, 180, 44, 0.045);
+}
+
+.quote span {
+  color: #a5aeb9;
+
+  font-size: 9px;
 }
 
 .quote b {
-  color: #ffd46e;
+  color: #ffd970;
+
+  font-size: 11px;
+  font-weight: 900;
 }
 
 
 /* =========================================================
-   FRIENDS
+   FRIENDS PAGE
    ========================================================= */
 
+.friendsPage {
+  width: 100%;
+  max-width: 560px;
+
+  margin: 0 auto;
+
+  padding-bottom: 18px;
+}
+
 .refHero {
-  padding: 16px;
+  padding:
+    15px;
 
   text-align: center;
 }
 
-.refHero img {
-  width: 88px;
-  height: 88px;
+.refHero > img {
+  width: 86px;
+  height: 86px;
+
+  margin:
+    0 auto
+    8px;
 
   border-radius: 50%;
 
   object-fit: cover;
 
   opacity: 1 !important;
+  visibility: visible !important;
 
   box-shadow:
-    0 0 26px
-    #d68d22;
+    0 0 24px
+    rgba(255, 183, 42, 0.40);
 }
 
 .refHero h2 {
   margin:
-    8px
+    6px
     0
     3px;
 
   color: #ffe09a;
+
+  font-size: 18px;
 }
 
 .refHero p {
-  color: #b2b8c2;
+  max-width: 390px;
 
-  font-size: 10px;
+  margin:
+    0 auto;
 
-  line-height: 1.5;
+  color: #9ea7b3;
+
+  font-size: 8.5px;
+
+  line-height: 1.45;
 }
+
+
+/* =========================================================
+   REF STATS
+   ========================================================= */
 
 .refStats {
   display: grid;
@@ -2647,42 +4084,57 @@ img {
     0;
 }
 
-.refStats div {
+.refStats > div {
   padding:
-    10px
-    4px;
+    9px
+    5px;
 
   border:
     1px solid
-    rgba(255, 186, 54, 0.22);
+    rgba(255, 190, 63, 0.20);
 
   border-radius: 11px;
 
   background:
-    rgba(255, 184, 49, 0.06);
-}
-
-.refStats b,
-.refStats span {
-  display: block;
+    rgba(255, 180, 44, 0.04);
 }
 
 .refStats b {
-  color: #ffd66e;
+  display: block;
+
+  color: #ffd66d;
+
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .refStats span {
-  color: #aab2bd;
+  display: block;
 
-  font-size: 8px;
+  margin-top: 2px;
+
+  color: #8f98a5;
+
+  font-size: 7px;
 }
 
-.friendsPage h3,
-.profilePage h3,
-.subPage > h3 {
+
+/* =========================================================
+   FRIEND PAGE HEADINGS
+   ========================================================= */
+
+.friendsPage > h3,
+.profilePage > h3,
+.pageShell > h3 {
+  margin:
+    15px
+    2px
+    8px;
+
   color: #ffe09a;
 
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 
@@ -2694,121 +4146,198 @@ img {
   display: grid;
 
   grid-template-columns:
-    1fr
-    1fr;
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 
   gap: 8px;
 }
 
 .mile {
+  min-width: 0;
+
   display: flex;
 
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 
-  padding: 10px;
+  gap: 8px;
+
+  padding:
+    9px
+    10px;
 }
 
-.mile b,
+.mile > div {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.mile b {
+  display: block;
+
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .mile span {
   display: block;
 
-  font-size: 10px;
-}
+  margin-top: 2px;
 
-.mile span {
-  color: #ffd06a;
+  color: #ffd56c;
+
+  font-size: 8px;
 }
 
 .mile button {
-  padding: 7px;
+  flex: 0 0 auto;
+
+  min-width: 50px;
+
+  padding:
+    6px
+    7px;
 
   border:
     1px solid
-    #806231;
+    rgba(130, 101, 48, 0.52);
 
-  border-radius: 9px;
+  border-radius: 8px;
 
-  background: #14120e;
+  background:
+    #13110d;
 
-  color: #d7c08b;
+  color: #cdb77f;
 
-  font-size: 9px;
+  font-size: 7px;
+  font-weight: 800;
 }
 
 .mile.ready {
+  border-color:
+    rgba(255, 198, 70, 0.56);
+
   box-shadow:
-    0 0 15px
-    rgba(255, 187, 56, 0.15);
+    0 0 12px
+    rgba(255, 183, 42, 0.07);
 }
 
 
 /* =========================================================
-   REF ROW
+   REFERRAL ROW
    ========================================================= */
 
 .refRow {
-  display: flex;
+  min-width: 0;
 
+  display: flex;
   align-items: center;
 
   gap: 9px;
 
-  padding: 10px;
+  padding:
+    9px
+    10px;
 }
 
 .avatar.small {
+  flex: 0 0 auto;
+
   width: 34px;
   height: 34px;
+
+  font-size: 11px;
 }
 
-.refRow div:nth-child(2) {
+.refRow > div:nth-child(2) {
+  min-width: 0;
+
   flex: 1;
 }
 
-.refRow b,
+.refRow b {
+  display: block;
+
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .refRow span {
   display: block;
 
-  font-size: 10px;
-}
+  margin-top: 2px;
 
-.refRow span {
-  color: #929aa8;
+  color: #8f98a5;
+
+  font-size: 7px;
 }
 
 .refRow em {
+  flex: 0 0 auto;
+
   padding:
-    5px
-    7px;
+    4px
+    6px;
 
   border-radius: 999px;
 
-  font-size: 9px;
+  font-size: 7px;
   font-style: normal;
+
+  font-weight: 800;
 }
 
 .refRow em.ok {
   background:
-    rgba(40, 163, 100, 0.16);
+    rgba(38, 180, 103, 0.15);
 
-  color: #46e38b;
+  color: #48df8c;
 }
 
 .refRow em.pending {
   background:
-    rgba(180, 128, 36, 0.15);
+    rgba(187, 129, 34, 0.14);
 
-  color: #f1bf5d;
+  color: #e9b85c;
 }
 
 
 /* =========================================================
-   PROFILE
+   PROFILE PAGE
+   ========================================================= */
+
+.profilePage {
+  width: 100%;
+  max-width: 560px;
+
+  margin: 0 auto;
+
+  padding-bottom: 18px;
+}
+
+
+/* =========================================================
+   PROFILE HERO
    ========================================================= */
 
 .profileHero {
-  padding: 16px;
+  padding:
+    15px;
 
   text-align: center;
 }
@@ -2817,52 +4346,65 @@ img {
   width: 76px;
   height: 76px;
 
-  margin: auto;
+  margin:
+    0 auto;
 
-  font-size: 28px;
+  font-size: 26px;
 }
 
 .profileHero h2 {
   margin:
-    7px
+    8px
     0
     2px;
+
+  color: #ffffff;
+
+  font-size: 17px;
 }
 
 .profileHero > span {
-  color: #aab1bc;
+  color: #969fab;
 
-  font-size: 10px;
+  font-size: 8px;
 }
 
 .badges {
   display: flex;
-
-  justify-content: center;
-
   flex-wrap: wrap;
+
+  align-items: center;
+  justify-content: center;
 
   gap: 5px;
 
-  margin-top: 8px;
+  margin-top: 9px;
 }
 
 .badges i {
   padding:
-    5px
+    4px
     7px;
 
   border:
     1px solid
-    #76582a;
+    rgba(255, 191, 65, 0.28);
 
   border-radius: 999px;
 
-  color: #f0c66e;
+  background:
+    rgba(255, 181, 43, 0.04);
 
-  font-size: 8px;
+  color: #d8b66d;
+
+  font-size: 7px;
   font-style: normal;
 }
+
+
+/* =========================================================
+   WALLET / HOLDING / SECURITY / SETTINGS
+   ========================================================= */
 
 .walletCard,
 .holding,
@@ -2870,67 +4412,81 @@ img {
 .settings {
   margin-top: 9px;
 
-  padding: 13px;
+  padding:
+    12px;
 }
 
 .walletCard .sectionHead {
-  align-items: center;
+  margin-bottom: 4px;
 }
 
 .securityLine {
   display: flex;
 
+  align-items: center;
   justify-content: space-between;
 
   gap: 10px;
 
+  min-height: 39px;
+
   padding:
-    9px
+    8px
     0;
 
   border-bottom:
     1px solid
-    rgba(255, 255, 255, 0.07);
+    rgba(255, 255, 255, 0.055);
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .securityLine:last-child {
   border-bottom: 0;
 }
 
+.securityLine span {
+  color: #adb6c1;
+}
+
 .securityLine b {
-  color: #d5d9e0;
+  color: #dce1e7;
+
+  text-align: right;
+
+  font-size: 9px;
 }
 
 .securityLine b.green {
-  color: #44e38c;
+  color: #47df8d;
 }
 
 
 /* =========================================================
-   HOLDING
+   PROFILE HOLDING PROGRESS
    ========================================================= */
 
 .holding .sectionHead b {
-  color: #ffd76b;
+  color: #ffd66d;
 
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .progress {
+  width: 100%;
   height: 7px;
 
-  overflow: hidden;
-
   margin:
-    12px
+    10px
     0
     5px;
 
+  overflow: hidden;
+
   border-radius: 999px;
 
-  background: #151922;
+  background:
+    #161a22;
 }
 
 .progress i {
@@ -2938,76 +4494,98 @@ img {
 
   height: 100%;
 
+  border-radius: 999px;
+
   background:
     linear-gradient(
       90deg,
-      #b26d13,
-      #ffe071
+      #a86112,
+      #df941f,
+      #ffe17a
     );
 
   box-shadow:
-    0 0 12px
-    #d98b22;
+    0 0 10px
+    rgba(255, 181, 43, 0.48);
 }
 
 .next {
   display: flex;
 
+  align-items: center;
   justify-content: space-between;
 
-  color: #aab2be;
+  gap: 10px;
 
-  font-size: 9px;
+  color: #9099a6;
+
+  font-size: 7.5px;
 }
 
 
 /* =========================================================
-   WITHDRAW HERO
+   WITHDRAW HERO BUTTON
    ========================================================= */
 
 .withdrawHero {
   width: 100%;
 
-  display: flex;
+  min-height: 62px;
 
+  display: flex;
   align-items: center;
 
   gap: 10px;
 
   margin-top: 9px;
 
-  padding: 13px;
+  padding:
+    11px
+    12px;
 
-  color: #fff;
+  color: #ffffff;
 
   text-align: left;
 }
 
 .withdrawHero > .ico {
-  color: #ffd064;
+  flex: 0 0 auto;
 
-  font-size: 28px;
+  color: #ffd266;
+
+  font-size: 25px;
 }
 
-.withdrawHero div {
+.withdrawHero > div {
+  min-width: 0;
+
   flex: 1;
 }
 
-.withdrawHero b,
-.withdrawHero span {
+.withdrawHero b {
   display: block;
+
+  color: #ffffff;
+
+  font-size: 10px;
 }
 
 .withdrawHero span {
-  color: #abb2bd;
+  display: block;
 
-  font-size: 9px;
+  margin-top: 2px;
+
+  color: #929ba8;
+
+  font-size: 8px;
 }
 
 .withdrawHero em {
-  color: #ffd46b;
+  flex: 0 0 auto;
 
-  font-size: 24px;
+  color: #ffd368;
+
+  font-size: 21px;
   font-style: normal;
 }
 
@@ -3016,35 +4594,62 @@ img {
    SETTINGS
    ========================================================= */
 
+.settings h3,
+.security h3 {
+  margin:
+    0
+    0
+    7px;
+
+  color: #ffe09a;
+
+  font-size: 12px;
+}
+
 .settings button {
   width: 100%;
 
+  min-height: 39px;
+
   display: flex;
 
+  align-items: center;
   justify-content: space-between;
 
-  padding:
-    11px
-    3px;
+  gap: 10px;
 
-  border: 0;
+  padding:
+    8px
+    2px;
 
   border-bottom:
     1px solid
-    rgba(255, 255, 255, 0.06);
+    rgba(255, 255, 255, 0.055);
 
-  background: none;
+  background:
+    transparent;
 
-  color: #dfe3e9;
+  color: #d7dde5;
 
   text-align: left;
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .settings button:last-child {
   border-bottom: 0;
 }
+
+.settings em {
+  color: #c3a056;
+
+  font-style: normal;
+}
+/* =========================================================
+   MAI NETWORK
+   App.css — PART 4 / 4
+   WITHDRAW + BOTTOM NAV + RESPONSIVE + FINAL FIXES
+   ========================================================= */
 
 
 /* =========================================================
@@ -3052,33 +4657,45 @@ img {
    ========================================================= */
 
 .withdrawBox {
-  padding: 14px;
+  padding:
+    14px;
 }
 
 .balanceBig {
-  padding: 8px;
+  padding:
+    8px
+    4px
+    12px;
 
   text-align: center;
 }
 
-.balanceBig span,
+.balanceBig span {
+  display: block;
+
+  color: #9fa8b4;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.5px;
+}
+
 .balanceBig b {
   display: block;
+
+  margin-top: 4px;
+
+  color: #ffe08a;
+
+  font-size: 24px;
+  font-weight: 950;
 }
 
-.balanceBig span {
-  color: #aeb5bf;
 
-  font-size: 10px;
-}
-
-.balanceBig b {
-  margin-top: 3px;
-
-  color: #ffe08c;
-
-  font-size: 27px;
-}
+/* =========================================================
+   WITHDRAW MINI GRID
+   ========================================================= */
 
 .miniGrid {
   display: grid;
@@ -3090,151 +4707,283 @@ img {
   gap: 7px;
 
   margin:
-    8px
+    4px
     0
     12px;
 }
 
-.miniGrid div {
-  padding: 10px;
+.miniGrid > div {
+  padding:
+    9px
+    10px;
 
   border:
     1px solid
-    rgba(255, 191, 65, 0.22);
+    rgba(255, 191, 65, 0.18);
 
-  border-radius: 11px;
+  border-radius: 10px;
 
   background:
-    rgba(255, 187, 57, 0.06);
-}
-
-.miniGrid span,
-.miniGrid b {
-  display: block;
+    rgba(255, 182, 43, 0.035);
 }
 
 .miniGrid span {
-  color: #aab2bf;
+  display: block;
 
-  font-size: 8px;
+  color: #8f98a4;
+
+  font-size: 7px;
 }
 
 .miniGrid b {
+  display: block;
+
   margin-top: 2px;
 
-  color: #ffd673;
+  color: #ffd66f;
 
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+
+/* =========================================================
+   WITHDRAW FORM
+   ========================================================= */
+
+.withdrawBox label {
+  display: block;
+
+  margin-top: 10px;
+
+  color: #c2c9d2;
+
+  font-size: 9px;
+  font-weight: 700;
 }
 
 .amount {
   display: flex;
 
   gap: 7px;
+
+  margin-top: 5px;
 }
 
-.amount button {
+.amount input {
+  min-width: 0;
+
+  flex: 1;
+
   padding:
-    0
-    12px;
+    10px
+    11px;
 
   border:
     1px solid
-    #ad7d31;
+    rgba(129, 94, 40, 0.56);
 
-  border-radius: 11px;
+  border-radius: 10px;
 
-  background: #201608;
+  outline: none;
 
-  color: #ffd56d;
-}
+  background:
+    #080c12;
 
-.walletDest {
-  display: flex;
-
-  justify-content: space-between;
-
-  gap: 9px;
-
-  padding: 11px;
-
-  border:
-    1px solid
-    #4e5460;
-
-  border-radius: 11px;
-
-  background: #090d14;
+  color: #ffffff;
 
   font-size: 10px;
 }
 
-.walletDest b {
-  color: #ffd56c;
+.amount input:focus {
+  border-color:
+    rgba(255, 193, 66, 0.62);
+
+  box-shadow:
+    0 0 0 2px
+    rgba(255, 181, 42, 0.05);
 }
 
-.holdBtn {
-  letter-spacing: 1px;
+.amount button {
+  flex: 0 0 auto;
+
+  min-width: 58px;
+
+  padding:
+    0
+    10px;
+
+  border:
+    1px solid
+    rgba(255, 194, 68, 0.44);
+
+  border-radius: 10px;
+
+  background:
+    rgba(80, 51, 13, 0.55);
+
+  color: #ffd66f;
+
+  font-size: 9px;
+  font-weight: 900;
 }
 
-.history {
+
+/* =========================================================
+   WALLET DESTINATION
+   ========================================================= */
+
+.walletDest {
   display: flex;
 
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 
-  padding: 11px;
+  gap: 12px;
+
+  margin-top: 10px;
+
+  padding:
+    10px
+    11px;
+
+  border:
+    1px solid
+    rgba(102, 111, 124, 0.42);
+
+  border-radius: 10px;
+
+  background:
+    #090d13;
 }
 
-.history b,
-.history span,
-.history small {
-  display: block;
-}
-
-.history b {
-  color: #ffe07e;
-}
-
-.history span,
-.history small {
-  margin-top: 2px;
-
-  color: #929aa7;
+.walletDest span {
+  color: #969faa;
 
   font-size: 8px;
 }
 
-.st {
+.walletDest b {
+  max-width: 68%;
+
+  overflow: hidden;
+
+  color: #ffd66d;
+
+  font-size: 8.5px;
+
+  text-align: right;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   HOLD TO WITHDRAW BUTTON
+   ========================================================= */
+
+.holdBtn {
+  min-height: 46px;
+
+  letter-spacing: 0.8px;
+}
+
+
+/* =========================================================
+   WITHDRAW HISTORY
+   ========================================================= */
+
+.history {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
   padding:
-    5px
+    10px
+    11px;
+}
+
+.history > div {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.history b {
+  display: block;
+
+  color: #ffe08a;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.history span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #949daa;
+
+  font-size: 7px;
+}
+
+.history small {
+  display: block;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: #777f8b;
+
+  font-size: 7px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.st {
+  flex: 0 0 auto;
+
+  padding:
+    4px
     7px;
 
   border-radius: 999px;
 
-  background: #1a1e27;
+  background:
+    rgba(89, 97, 109, 0.16);
 
-  color: #cbd0d8;
+  color: #bfc6cf;
 
-  font-size: 8px;
+  font-size: 6.8px;
   font-style: normal;
+
+  font-weight: 800;
 
   text-transform: uppercase;
 }
 
 .st.completed {
   background:
-    rgba(31, 137, 85, 0.18);
+    rgba(34, 174, 99, 0.15);
 
-  color: #48e28d;
+  color: #48df8d;
 }
 
 .st.rejected,
 .st.failed {
   background:
-    rgba(160, 45, 45, 0.18);
+    rgba(187, 58, 58, 0.16);
 
-  color: #ff6868;
+  color: #ff6e6e;
 }
 
 .st.pending,
@@ -3242,427 +4991,179 @@ img {
 .st.approved,
 .st.processing {
   background:
-    rgba(159, 112, 25, 0.18);
+    rgba(188, 129, 33, 0.15);
 
-  color: #f1bd55;
+  color: #edba5c;
 }
 
 
 /* =========================================================
-   ANIMATIONS
+   BOTTOM NAVIGATION
    ========================================================= */
 
-@keyframes cloudMove {
-  from {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      );
-  }
+.bottomNav {
+  position: fixed;
+  z-index: 100;
 
-  to {
-    transform:
-      translate3d(
-        150vw,
-        0,
-        0
-      );
-  }
+  left: 10px;
+  right: 10px;
+
+  bottom:
+    max(
+      8px,
+      env(safe-area-inset-bottom)
+    );
+
+  height: 62px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      1fr
+    );
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255, 191, 65, 0.52);
+
+  border-radius: 19px;
+
+  background:
+    rgba(3, 5, 9, 0.985);
+
+  box-shadow:
+    0 0 20px
+    rgba(255, 178, 38, 0.11),
+
+    0 8px 26px
+    rgba(0, 0, 0, 0.45);
 }
 
+.bottomNav button {
+  position: relative;
 
-@keyframes waterMove {
-  from {
-    background-position:
-      0 0;
-  }
+  display: flex;
+  flex-direction: column;
 
-  to {
-    background-position:
-      0 110px;
-  }
+  align-items: center;
+  justify-content: center;
+
+  gap: 3px;
+
+  background:
+    transparent;
+
+  color: #aeb6c1;
 }
 
-
-@keyframes starsMove {
-  from {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      );
-  }
-
-  to {
-    transform:
-      translate3d(
-        -100px,
-        70px,
-        0
-      );
-  }
+.bottomNav .ico {
+  font-size: 21px;
 }
 
-
-@keyframes beamBreathe {
-  0%,
-  100% {
-    opacity: 0.55;
-
-    transform:
-      translate3d(
-        -50%,
-        0,
-        0
-      )
-      scaleX(1);
-  }
-
-  50% {
-    opacity: 0.78;
-
-    transform:
-      translate3d(
-        -50%,
-        0,
-        0
-      )
-      scaleX(1.18);
-  }
+.bottomNav span {
+  font-size: 8px;
+  font-weight: 750;
 }
 
+.bottomNav button.active {
+  color: #ffd66b;
 
-@keyframes haloBreathe {
-  0%,
-  100% {
-    opacity: 0.76;
-
-    transform:
-      scale(0.98);
-  }
-
-  50% {
-    opacity: 1;
-
-    transform:
-      scale(1.035);
-  }
+  background:
+    radial-gradient(
+      circle at 50% 110%,
+      rgba(255, 181, 43, 0.24),
+      transparent 67%
+    );
 }
 
+.bottomNav button.active::after {
+  content: "";
 
-@keyframes coinFloatStable {
-  0%,
-  100% {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      )
-      scale(1);
-  }
+  position: absolute;
 
-  50% {
-    transform:
-      translate3d(
-        0,
-        -6px,
-        0
-      )
-      scale(1.008);
-  }
-}
+  bottom: 0;
 
+  width: 26px;
+  height: 2px;
 
-@keyframes orbitSpin1 {
-  from {
-    transform:
-      rotateX(70deg)
-      rotateZ(0deg);
-  }
+  border-radius: 999px;
 
-  to {
-    transform:
-      rotateX(70deg)
-      rotateZ(360deg);
-  }
-}
+  background:
+    #ffd56c;
 
-
-@keyframes orbitSpin2 {
-  from {
-    transform:
-      rotateX(70deg)
-      rotateZ(44deg);
-  }
-
-  to {
-    transform:
-      rotateX(70deg)
-      rotateZ(-316deg);
-  }
-}
-
-
-@keyframes goldSparkFly {
-  0% {
-    opacity: 1;
-
-    transform:
-      translate(
-        -50%,
-        -50%
-      )
-      scale(0.45)
-      rotate(0deg);
-  }
-
-  32% {
-    opacity: 1;
-
-    transform:
-      translate(
-        calc(
-          -50% +
-          var(--dx) * 0.35
-        ),
-        calc(
-          -50% +
-          var(--dy) * 0.35
-        )
-      )
-      scale(1.15)
-      rotate(80deg);
-  }
-
-  100% {
-    opacity: 0;
-
-    transform:
-      translate(
-        calc(
-          -50% +
-          var(--dx)
-        ),
-        calc(
-          -50% +
-          var(--dy)
-        )
-      )
-      scale(0.1)
-      rotate(210deg);
-  }
-}
-
-
-@keyframes coinTap3D {
-  0% {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      )
-      scale(1)
-      rotateZ(0deg);
-  }
-
-  23% {
-    transform:
-      translate3d(
-        0,
-        4px,
-        0
-      )
-      scale(0.91)
-      rotateZ(-2deg);
-  }
-
-  55% {
-    transform:
-      translate3d(
-        0,
-        -8px,
-        0
-      )
-      scale(1.055)
-      rotateZ(2deg);
-  }
-
-  78% {
-    transform:
-      translate3d(
-        0,
-        2px,
-        0
-      )
-      scale(0.985)
-      rotateZ(-0.7deg);
-  }
-
-  100% {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      )
-      scale(1)
-      rotateZ(0deg);
-  }
-}
-
-
-@keyframes coinFaceTap {
-  0% {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      )
-      rotateY(0deg);
-  }
-
-  35% {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      )
-      rotateY(9deg)
-      rotateX(-5deg);
-  }
-
-  70% {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      )
-      rotateY(-5deg)
-      rotateX(3deg);
-  }
-
-  100% {
-    transform:
-      translate3d(
-        0,
-        0,
-        0
-      )
-      rotateY(0deg)
-      rotateX(0deg);
-  }
-}
-
-
-@keyframes coinGlowTap {
-  0% {
-    opacity: 0.75;
-
-    transform:
-      scale(0.98);
-  }
-
-  45% {
-    opacity: 1;
-
-    transform:
-      scale(1.18);
-  }
-
-  100% {
-    opacity: 0.76;
-
-    transform:
-      scale(0.98);
-  }
-}
-
-
-@keyframes coinFlashTap {
-  0% {
-    opacity: 0;
-  }
-
-  25% {
-    opacity: 0.8;
-  }
-
-  100% {
-    opacity: 0;
-  }
+  box-shadow:
+    0 0 8px
+    rgba(255, 190, 55, 0.75);
 }
 
 
 /* =========================================================
-   SHORT SCREEN
+   SMALL SCREEN HEIGHT
    ========================================================= */
 
-@media (max-height: 720px) {
+@media (max-height: 760px) {
 
   .screen {
     height:
       calc(
-        100dvh - 69px
+        100dvh - 70px
       );
 
-    padding-top: 6px;
+    padding-top: 7px;
   }
 
   .brand,
   .balance {
-    min-height: 61px;
+    min-height: 66px;
   }
 
-  .brand img {
+  .brand > img {
     width: 44px;
     height: 44px;
   }
 
-  .brand small {
-    display: none;
-  }
-
   .profileMini,
-  .walletHolding {
-    min-height: 52px;
+  .taskTopCard,
+  .walletHoldingCard {
+    min-height: 56px;
   }
 
-  .quick {
-    min-height: 36px;
+  .coinArea {
+    min-height: 220px;
   }
 
-  .hero {
-    min-height: 175px;
-  }
-
-  .coin {
+  .mainCoin {
     width:
       min(
-        50vw,
-        232px
+        49vw,
+        215px
       );
   }
 
-  .homeCards .infoCard {
-    min-height: 63px;
-
-    padding: 7px;
+  .coinTapHint {
+    margin-top: 1px;
   }
 
-  .tagline {
-    display: none;
+  .miningSummary {
+    padding:
+      8px
+      10px;
+  }
+
+  .infoCard {
+    min-height: 65px;
+
+    padding:
+      7px
+      8px;
   }
 
   .bottomNav {
-    height: 58px;
+    height: 56px;
   }
 }
 
@@ -3671,52 +5172,146 @@ img {
    VERY SMALL WIDTH
    ========================================================= */
 
-@media (max-width: 370px) {
+@media (max-width: 380px) {
+
+  .screen {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  .topGrid {
+    gap: 6px;
+  }
+
+  .brand,
+  .balance,
+  .profileMini,
+  .taskTopCard {
+    padding:
+      7px
+      7px;
+  }
+
+  .brand > img {
+    width: 43px;
+    height: 43px;
+  }
 
   .brand strong {
-    font-size: 12px;
-  }
-
-  .brand span {
-    font-size: 9px;
-  }
-
-  .balance b {
-    font-size: 14px;
-  }
-
-  .profileMiniText > b {
     font-size: 11px;
   }
 
-  .walletHolding b {
+  .brand span {
+    font-size: 8px;
+  }
+
+  .brand small {
+    display: none;
+  }
+
+  .balance > .ico {
+    display: none;
+  }
+
+  .balance > img {
+    width: 27px;
+    height: 27px;
+  }
+
+  .balance b {
+    font-size: 13px;
+  }
+
+  .balance span {
+    font-size: 6.9px;
+  }
+
+  .profileMini .avatar {
+    width: 35px;
+    height: 35px;
+  }
+
+  .profileMiniText > b {
     font-size: 10px;
   }
 
-  .quick b {
-    font-size: 10px;
+  .taskTopIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .taskTopCard b {
+    font-size: 9px;
+  }
+
+  .walletHoldingCard {
+    padding:
+      8px
+      9px;
+  }
+
+  .holdingIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .holdingIcon img {
+    width: 29px;
+    height: 29px;
+  }
+
+  .holdingContent > b {
+    font-size: 12px;
+  }
+
+  .mainCoin {
+    width:
+      min(
+        60vw,
+        220px
+      );
+  }
+
+  .summaryMain > strong {
+    font-size: 17px;
   }
 
   .infoCard > .ico {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .infoCard b {
-    font-size: 10px;
+    font-size: 9.5px;
   }
 
-  .coin {
-    width:
-      min(
-        58vw,
-        238px
-      );
+  .levelCard {
+    min-height: 88px;
+
+    padding: 8px;
+  }
+
+  .levelCoin {
+    width: 48px;
+    height: 48px;
+  }
+
+  .levelCoinLogo {
+    width: 41px;
+    height: 41px;
+  }
+
+  .levelCardText strong {
+    font-size: 12px;
+  }
+
+  .levelCardText span {
+    font-size: 7.5px;
   }
 }
 
 
 /* =========================================================
-   TABLET / DESKTOP PREVIEW
+   LARGE MOBILE / TABLET
    ========================================================= */
 
 @media (min-width: 700px) {
@@ -3735,6 +5330,33 @@ img {
     transform:
       translateX(-50%);
   }
+
+  .homePage,
+  .tasksPage,
+  .friendsPage,
+  .profilePage,
+  .pageShell {
+    max-width: 560px;
+  }
+}
+
+
+/* =========================================================
+   SAFE AREA
+   ========================================================= */
+
+@supports (
+  padding-bottom:
+    env(safe-area-inset-bottom)
+) {
+
+  .screen {
+    padding-bottom:
+      calc(
+        24px +
+        env(safe-area-inset-bottom)
+      );
+  }
 }
 
 
@@ -3751,18 +5373,85 @@ img {
   .water,
   .stars,
   .beam,
-  .orbit,
-  .coin,
-  .coinGlow {
+  .coinAura,
+  .mainCoin {
     animation:
       none !important;
   }
 
-  .coin.coinTapped {
+  .mainCoin.coinPressed {
     animation:
-      coinTap3D
-      0.3s
+      coinPress3D
+      0.28s
       ease-out
       !important;
   }
+
+  .goldSpark {
+    animation-duration:
+      0.45s;
+  }
 }
+
+
+/* =========================================================
+   IMAGE STABILITY
+   Telegram Android WebView
+   ========================================================= */
+
+.brand img,
+.balance img,
+.holdingIcon img,
+.mainCoinLogo,
+.levelCoinLogo,
+.levelMaiLogo,
+.boostBalanceLogo img,
+.pageHeader img,
+.refHero img,
+.avatar img {
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  backface-visibility:
+    hidden;
+
+  -webkit-backface-visibility:
+    hidden;
+
+  transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+
+  -webkit-transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+}
+
+
+/* =========================================================
+   FINAL BUTTON TOUCH FIX
+   ========================================================= */
+
+button {
+  touch-action:
+    manipulation;
+}
+
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+
+/* =========================================================
+   END OF APP.CSS
+   ========================================================= */
