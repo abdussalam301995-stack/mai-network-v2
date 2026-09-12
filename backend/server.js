@@ -88,92 +88,383 @@ function admin(req,res,next){ if(!ADMIN_KEY || req.get('X-Admin-Key')!==ADMIN_KE
 const buckets = new Map();
 function rateLimit(max=120, windowMs=60000){ return (req,res,next)=>{ const k=`${req.ip}:${req.path}`; const now=Date.now(); let b=buckets.get(k); if(!b||now-b.start>windowMs)b={start:now,count:0}; b.count++; buckets.set(k,b); if(b.count>max)return res.status(429).json({success:false,message:'Too many requests'}); next(); }; }
 app.use(rateLimit(180));
+async function initDb() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required');
+  }
 
-async function initDb(){
-  if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
-    await pool.query(`
-    ALTER TABLE IF EXISTS ad_sessions
-    ADD COLUMN IF NOT EXISTS day DATE;
+  // =========================================================
+  // 1. USERS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      telegram_id BIGINT PRIMARY KEY,
+      username TEXT NOT NULL DEFAULT '',
+      first_name TEXT NOT NULL DEFAULT 'User',
+      photo_url TEXT,
 
+      balance NUMERIC(30,8) NOT NULL DEFAULT 0,
+      locked_balance NUMERIC(30,8) NOT NULL DEFAULT 0,
+
+      wallet_address TEXT,
+      wallet_connected_at TIMESTAMPTZ,
+
+      farm_started_at TIMESTAMPTZ,
+      farm_rate_daily NUMERIC(30,8),
+
+      daily_bonus_date DATE,
+
+      referred_by BIGINT,
+      referral_qualified BOOLEAN NOT NULL DEFAULT FALSE,
+
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  // Upgrade old users table safely
+  await pool.query(`
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS username TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS first_name TEXT NOT NULL DEFAULT 'User',
+      ADD COLUMN IF NOT EXISTS photo_url TEXT,
+
+      ADD COLUMN IF NOT EXISTS balance NUMERIC(30,8) NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS locked_balance NUMERIC(30,8) NOT NULL DEFAULT 0,
+
+      ADD COLUMN IF NOT EXISTS wallet_address TEXT,
+      ADD COLUMN IF NOT EXISTS wallet_connected_at TIMESTAMPTZ,
+
+      ADD COLUMN IF NOT EXISTS farm_started_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS farm_rate_daily NUMERIC(30,8),
+
+      ADD COLUMN IF NOT EXISTS daily_bonus_date DATE,
+
+      ADD COLUMN IF NOT EXISTS referred_by BIGINT,
+      ADD COLUMN IF NOT EXISTS referral_qualified BOOLEAN NOT NULL DEFAULT FALSE,
+
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  `);
+
+  // Add self referral FK only if it does not already exist.
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'users_referred_by_fkey'
+      ) THEN
+        ALTER TABLE users
+        ADD CONSTRAINT users_referred_by_fkey
+        FOREIGN KEY (referred_by)
+        REFERENCES users(telegram_id);
+      END IF;
+    END
+    $$;
+  `);
+
+  // =========================================================
+  // 2. TRANSACTIONS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS transactions (
+      id BIGSERIAL PRIMARY KEY,
+
+      telegram_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      type TEXT NOT NULL,
+      amount NUMERIC(30,8) NOT NULL,
+
+      reference TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE transactions
+      ADD COLUMN IF NOT EXISTS type TEXT,
+      ADD COLUMN IF NOT EXISTS amount NUMERIC(30,8),
+      ADD COLUMN IF NOT EXISTS reference TEXT,
+      ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  `);
+
+  // =========================================================
+  // 3. DAILY TASK COMPLETIONS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS daily_task_completions (
+      id BIGSERIAL PRIMARY KEY,
+
+      telegram_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      task_key TEXT NOT NULL,
+      day DATE NOT NULL,
+      reward NUMERIC(30,8) NOT NULL,
+
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      UNIQUE (telegram_id, task_key, day)
+    );
+  `);
+
+  // =========================================================
+  // 4. AD SESSIONS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ad_sessions (
+      id UUID PRIMARY KEY,
+
+      telegram_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      day DATE,
+
+      status TEXT NOT NULL DEFAULT 'started',
+
+      started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      completed_at TIMESTAMPTZ,
+      claimed_at TIMESTAMPTZ,
+
+      provider_ref TEXT,
+
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE ad_sessions
+      ADD COLUMN IF NOT EXISTS day DATE,
+      ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'started',
+      ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS provider_ref TEXT,
+      ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb;
+  `);
+
+  await pool.query(`
     UPDATE ad_sessions
     SET day = COALESCE(started_at::date, CURRENT_DATE)
     WHERE day IS NULL;
+  `);
 
-    ALTER TABLE IF EXISTS ad_sessions
+  await pool.query(`
+    ALTER TABLE ad_sessions
     ALTER COLUMN day SET NOT NULL;
   `);
+
   await pool.query(`
-  ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS photo_url TEXT,
-    ADD COLUMN IF NOT EXISTS referred_by BIGINT,
-    ADD COLUMN IF NOT EXISTS referral_qualified BOOLEAN NOT NULL DEFAULT FALSE;
-`);
+    CREATE INDEX IF NOT EXISTS idx_ads_user_day
+    ON ad_sessions(telegram_id, day);
+  `);
+
+  // =========================================================
+  // 5. REFERRAL MILESTONES
+  // =========================================================
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS users(
-      telegram_id BIGINT PRIMARY KEY,
-      username TEXT NOT NULL DEFAULT '', first_name TEXT NOT NULL DEFAULT 'User', photo_url TEXT,
-      balance NUMERIC(30,8) NOT NULL DEFAULT 0, locked_balance NUMERIC(30,8) NOT NULL DEFAULT 0,
-      wallet_address TEXT, wallet_connected_at TIMESTAMPTZ,
-      farm_started_at TIMESTAMPTZ, farm_rate_daily NUMERIC(30,8),
-      daily_bonus_date DATE,
-      referred_by BIGINT REFERENCES users(telegram_id), referral_qualified BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    CREATE TABLE IF NOT EXISTS referral_milestones (
+      telegram_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      milestone INTEGER NOT NULL,
+
+      reward NUMERIC(30,8) NOT NULL,
+
+      claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      PRIMARY KEY (telegram_id, milestone)
     );
-    CREATE TABLE IF NOT EXISTS transactions(
-      id BIGSERIAL PRIMARY KEY, telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
-      type TEXT NOT NULL, amount NUMERIC(30,8) NOT NULL, reference TEXT, metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS daily_task_completions(
-      id BIGSERIAL PRIMARY KEY, telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
-      task_key TEXT NOT NULL, day DATE NOT NULL, reward NUMERIC(30,8) NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(telegram_id,task_key,day)
-    );
-    CREATE TABLE IF NOT EXISTS ad_sessions(
-      id UUID PRIMARY KEY, telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
-      day DATE NOT NULL, status TEXT NOT NULL DEFAULT 'started', started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      completed_at TIMESTAMPTZ, claimed_at TIMESTAMPTZ, provider_ref TEXT, metadata JSONB NOT NULL DEFAULT '{}'::jsonb
-    );
-    CREATE INDEX IF NOT EXISTS idx_ads_user_day ON ad_sessions(telegram_id,day);
-    CREATE TABLE IF NOT EXISTS referral_milestones(
-      telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE, milestone INTEGER NOT NULL,
-      reward NUMERIC(30,8) NOT NULL, claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), PRIMARY KEY(telegram_id,milestone)
-    );
-    CREATE TABLE IF NOT EXISTS campaigns(
-      id BIGSERIAL PRIMARY KEY, owner_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
-      type TEXT NOT NULL, title TEXT NOT NULL, target_url TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
-      target_count INTEGER NOT NULL CHECK(target_count>0), completed_count INTEGER NOT NULL DEFAULT 0,
+  `);
+
+  // =========================================================
+  // 6. CAMPAIGNS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id BIGSERIAL PRIMARY KEY,
+
+      owner_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      target_url TEXT NOT NULL,
+
+      description TEXT NOT NULL DEFAULT '',
+
+      target_count INTEGER NOT NULL
+        CHECK (target_count > 0),
+
+      completed_count INTEGER NOT NULL DEFAULT 0,
+
       reward_per_user NUMERIC(30,8) NOT NULL DEFAULT 0,
-      payment_method TEXT NOT NULL CHECK(payment_method IN('MAI','GRAM')), payment_amount NUMERIC(30,8) NOT NULL,
-      payment_status TEXT NOT NULL DEFAULT 'pending', status TEXT NOT NULL DEFAULT 'pending',
-      verification_type TEXT NOT NULL DEFAULT 'manual', chat_id TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), approved_at TIMESTAMPTZ
+
+      payment_method TEXT NOT NULL
+        CHECK (payment_method IN ('MAI', 'GRAM')),
+
+      payment_amount NUMERIC(30,8) NOT NULL,
+
+      payment_status TEXT NOT NULL DEFAULT 'pending',
+      status TEXT NOT NULL DEFAULT 'pending',
+
+      verification_type TEXT NOT NULL DEFAULT 'manual',
+
+      chat_id TEXT,
+
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      approved_at TIMESTAMPTZ
     );
-    CREATE TABLE IF NOT EXISTS campaign_completions(
-      campaign_id BIGINT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
-      telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
-      rewarded NUMERIC(30,8) NOT NULL DEFAULT 0, completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      PRIMARY KEY(campaign_id,telegram_id)
+  `);
+
+  // =========================================================
+  // 7. CAMPAIGN COMPLETIONS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS campaign_completions (
+      campaign_id BIGINT NOT NULL
+        REFERENCES campaigns(id)
+        ON DELETE CASCADE,
+
+      telegram_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      rewarded NUMERIC(30,8) NOT NULL DEFAULT 0,
+
+      completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      PRIMARY KEY (campaign_id, telegram_id)
     );
-    CREATE TABLE IF NOT EXISTS withdrawals(
-      id UUID PRIMARY KEY, telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
-      amount NUMERIC(30,8) NOT NULL, fee NUMERIC(30,8) NOT NULL, receive_amount NUMERIC(30,8) NOT NULL,
-      wallet_address TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', idempotency_key TEXT NOT NULL,
-      risk_flags JSONB NOT NULL DEFAULT '[]'::jsonb, tx_hash TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE(telegram_id,idempotency_key)
+  `);
+
+  // =========================================================
+  // 8. WITHDRAWALS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS withdrawals (
+      id UUID PRIMARY KEY,
+
+      telegram_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      amount NUMERIC(30,8) NOT NULL,
+      fee NUMERIC(30,8) NOT NULL,
+      receive_amount NUMERIC(30,8) NOT NULL,
+
+      wallet_address TEXT NOT NULL,
+
+      status TEXT NOT NULL DEFAULT 'pending',
+
+      idempotency_key TEXT NOT NULL,
+
+      risk_flags JSONB NOT NULL DEFAULT '[]'::jsonb,
+
+      tx_hash TEXT,
+
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      UNIQUE (telegram_id, idempotency_key)
     );
-    CREATE TABLE IF NOT EXISTS device_accounts(
-      device_hash TEXT NOT NULL, telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
-      first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(), last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      PRIMARY KEY(device_hash,telegram_id)
+  `);
+
+  // =========================================================
+  // 9. DEVICE ACCOUNTS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS device_accounts (
+      device_hash TEXT NOT NULL,
+
+      telegram_id BIGINT NOT NULL
+        REFERENCES users(telegram_id)
+        ON DELETE CASCADE,
+
+      first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      PRIMARY KEY (device_hash, telegram_id)
     );
-    CREATE TABLE IF NOT EXISTS security_logs(
-      id BIGSERIAL PRIMARY KEY, telegram_id BIGINT, action TEXT NOT NULL, severity TEXT NOT NULL DEFAULT 'info',
-      ip_hash TEXT, device_hash TEXT, user_agent_hash TEXT, metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  `);
+
+  // Upgrade old device_accounts table
+  await pool.query(`
+    ALTER TABLE device_accounts
+      ADD COLUMN IF NOT EXISTS device_hash TEXT,
+      ADD COLUMN IF NOT EXISTS first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      ADD COLUMN IF NOT EXISTS last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  `);
+
+  // =========================================================
+  // 10. SECURITY LOGS
+  // =========================================================
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS security_logs (
+      id BIGSERIAL PRIMARY KEY,
+
+      telegram_id BIGINT,
+
+      action TEXT NOT NULL,
+
+      severity TEXT NOT NULL DEFAULT 'info',
+
+      ip_hash TEXT,
+      device_hash TEXT,
+      user_agent_hash TEXT,
+
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  // This fixes your current ip_hash error and protects against
+  // other old security_logs schemas.
+  await pool.query(`
+    ALTER TABLE security_logs
+      ADD COLUMN IF NOT EXISTS telegram_id BIGINT,
+      ADD COLUMN IF NOT EXISTS action TEXT,
+      ADD COLUMN IF NOT EXISTS severity TEXT NOT NULL DEFAULT 'info',
+      ADD COLUMN IF NOT EXISTS ip_hash TEXT,
+      ADD COLUMN IF NOT EXISTS device_hash TEXT,
+      ADD COLUMN IF NOT EXISTS user_agent_hash TEXT,
+      ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_security_logs_ip_hash
+    ON security_logs(ip_hash);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_security_logs_created_at
+    ON security_logs(created_at);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_security_logs_user
+    ON security_logs(telegram_id);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_users_referred_by
+    ON users(referred_by);
+  `);
+
+  console.log('MAI Network database schema ready');
 }
 
 function parseInitData(initData){
